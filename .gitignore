@@ -1,0 +1,63 @@
+# Dependencias instaladas localmente
+node_modules/
+
+# Variaveis de ambiente e segredos
+.env
+.env.*
+!.env.example
+cypress.env.json
+
+# Saidas do Cypress
+cypress/screenshots/
+cypress/videos/
+cypress/downloads/
+cypress/evidencias/*
+!cypress/evidencias/.gitkeep
+
+# Relatorios e cobertura
+reports/
+coverage/
+cucumber-report.json
+cucumber-report.html
+cucumber-messages.ndjson
+
+# Resultados de performance e auditoria
+performance/results/
+performance/*.html
+performance/*.csv
+performance/*.json
+lighthouse-report.*
+.lighthouseci/
+
+# Resultados de seguranca
+security/reports/
+security/*.html
+security/*.json
+security/*.xml
+
+# Logs e arquivos temporarios
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+tmp/
+temp/
+*.tmp
+*.temp
+
+# Cache de ferramentas
+.cache/
+.nyc_output/
+.eslintcache
+
+# Editores e IDEs
+.vscode/
+.idea/
+*.code-workspace
+
+# Arquivos do sistema operacional
+.DS_Store
+Thumbs.db
+Desktop.ini
+
