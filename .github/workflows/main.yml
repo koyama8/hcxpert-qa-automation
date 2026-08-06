@@ -1,1 +1,45 @@
+name: Testes E2E - Cypress
 
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  login-e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    env:
+      CYPRESS_email: ${{ secrets.TEST_USER_EMAIL }}
+      CYPRESS_senha: ${{ secrets.TEST_USER_PASSWORD }}
+
+    steps:
+      - name: Baixar o projeto
+        uses: actions/checkout@v4
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Instalar dependências
+        run: npm ci
+
+      - name: Executar testes de login
+        run: npx cypress run --browser electron --spec "cypress/e2e/features/01_login.feature"
+
+      - name: Salvar evidências
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: evidencias-login
+          path: |
+            cypress/screenshots
+            cypress/videos
+          if-no-files-found: ignore
