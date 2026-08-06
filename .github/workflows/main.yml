@@ -13,7 +13,7 @@ permissions:
   contents: read
 
 jobs:
-  login-e2e:
+  testes-e2e:
     runs-on: ubuntu-latest
     timeout-minutes: 15
 
@@ -34,14 +34,14 @@ jobs:
       - name: Instalar dependências
         run: npm ci
 
-      - name: Executar testes de login
-        run: npx cypress run --browser electron --spec "cypress/e2e/features/01_login.feature"
+      - name: Executar testes de login e busca
+        run: npx cypress run --browser electron --spec "cypress/e2e/features/01_login.feature,cypress/e2e/features/02_search.feature"
 
       - name: Salvar evidências
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: evidencias-login
+          name: evidencias-e2e
           path: |
             cypress/screenshots
             cypress/videos
