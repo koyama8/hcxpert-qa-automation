@@ -1,5 +1,6 @@
 name: Testes E2E - Cypress
 
+# Executa a suíte em alterações da main e em Pull Requests.
 on:
   push:
     branches:
