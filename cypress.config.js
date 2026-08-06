@@ -10,6 +10,8 @@ const {
 module.exports = defineConfig({
   e2e: {
     baseUrl: "https://www.automationexercise.com",
+    viewportWidth: 1440,
+    viewportHeight: 900,
     specPattern: "cypress/e2e/features/**/*.feature",
     supportFile: "cypress/support/e2e.js",
     video: true,
