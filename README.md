@@ -1,5 +1,7 @@
 # Automação de Testes - HCXpert
 
+[![Testes E2E - Cypress](https://github.com/koyama8/hcxpert-qa-automation/actions/workflows/main.yml/badge.svg)](https://github.com/koyama8/hcxpert-qa-automation/actions/workflows/main.yml)
+
 Projeto desenvolvido para o desafio técnico de Engenharia de Qualidade, utilizando Cypress, Cucumber e JavaScript.
 
 ## Parecer Crítico de Testabilidade
