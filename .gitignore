@@ -23,6 +23,7 @@ cucumber-messages.ndjson
 
 # Resultados de performance e auditoria
 performance/results/
+performance/lighthouse/
 performance/*.html
 performance/*.csv
 performance/*.json
@@ -60,4 +61,3 @@ temp/
 .DS_Store
 Thumbs.db
 Desktop.ini
-

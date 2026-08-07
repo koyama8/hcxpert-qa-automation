@@ -1,10 +1,11 @@
 # Automação de Testes - HCXpert
 
-[![Testes E2E - Cypress](https://github.com/koyama8/hcxpert-qa-automation/actions/workflows/main.yml/badge.svg)](https://github.com/koyama8/hcxpert-qa-automation/actions/workflows/main.yml)
-
-[![Ver Relatório Cucumber](https://img.shields.io/badge/Relatório-Cucumber-23D96C?style=for-the-badge&logo=cucumber&logoColor=white)](https://koyama8.github.io/hcxpert-qa-automation/)
-
-[![Ver Relatório de Performance](https://img.shields.io/badge/Performance-k6-F46800?style=for-the-badge&logo=k6&logoColor=white)](https://koyama8.github.io/hcxpert-qa-automation/performance.html)
+<p>
+  <a href="https://github.com/koyama8/hcxpert-qa-automation/actions/workflows/main.yml"><img alt="Testes E2E - Cypress" src="https://img.shields.io/github/actions/workflow/status/koyama8/hcxpert-qa-automation/main.yml?branch=main&amp;style=for-the-badge&amp;logo=githubactions&amp;logoColor=white&amp;label=Testes%20E2E"></a>
+  <a href="https://koyama8.github.io/hcxpert-qa-automation/"><img alt="Ver Relatório Cucumber" src="https://img.shields.io/badge/Relatório-Cucumber-23D96C?style=for-the-badge&amp;logo=cucumber&amp;logoColor=white"></a>
+  <a href="https://koyama8.github.io/hcxpert-qa-automation/performance.html"><img alt="Ver Relatório de Performance" src="https://img.shields.io/badge/Performance-k6-F46800?style=for-the-badge&amp;logo=k6&amp;logoColor=white"></a>
+  <a href="https://koyama8.github.io/hcxpert-qa-automation/lighthouse.html"><img alt="Ver Relatório Lighthouse" src="https://img.shields.io/badge/Performance-Lighthouse-F44B21?style=for-the-badge&amp;logo=lighthouse&amp;logoColor=white"></a>
+</p>
 
 Projeto desenvolvido para o desafio técnico de Engenharia de Qualidade, utilizando Cypress, Cucumber e JavaScript.
 
@@ -13,6 +14,7 @@ Projeto desenvolvido para o desafio técnico de Engenharia de Qualidade, utiliza
 - Node.js 22 ou superior;
 - npm;
 - k6 2 ou superior para a execução local dos testes de performance;
+- Google Chrome para a auditoria Lighthouse local;
 - credenciais de uma conta exclusiva de testes no Automation Exercise.
 
 ## Instalação
@@ -40,6 +42,7 @@ ignorado pelo Git e não deve ser enviado ao repositório:
 | `npm run test:e2e` | Executa somente os fluxos Web |
 | `npm run test:api` | Executa somente os cenários de API |
 | `npm run test:perf` | Executa 10 usuários virtuais durante 30 segundos na API alvo |
+| `npm run test:lighthouse` | Executa três auditorias Lighthouse na aplicação Web |
 | `npm run cy:open` | Abre a interface interativa do Cypress |
 | `npm run report` | Regenera o HTML a partir do NDJSON existente |
 
@@ -107,6 +110,25 @@ No GitHub Actions, o k6 gera automaticamente `k6-report.html` e
 `k6-summary.json`. Os arquivos são disponibilizados no artefato
 `evidencias-performance`, e o relatório HTML também é publicado no GitHub
 Pages pelo botão **Ver Relatório de Performance** no início deste README.
+
+### Performance Web com Lighthouse
+
+A auditoria Lighthouse no pipeline executa três medições em modo desktop e utiliza a mediana
+para reduzir variações de rede e infraestrutura. São acompanhados os limites
+recomendados de FCP menor ou igual a 1,8 segundo e LCP menor ou igual a 2,5
+segundos.
+
+Como a aplicação auditada é um ambiente público de terceiros, violações desses
+limites são registradas como alertas e evidências, sem bloquear toda a suíte
+funcional. Para executar localmente:
+
+```bash
+npm run test:lighthouse
+```
+
+O pipeline publica os relatórios HTML/JSON no artefato
+`evidencias-lighthouse`. O relatório representativo também fica disponível no
+GitHub Pages pelo botão **Ver Relatório Lighthouse** no início deste README.
 
 ### Consultar o relatório no GitHub Actions
 

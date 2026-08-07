@@ -56,6 +56,10 @@ jobs:
           mkdir -p performance/results
           k6 run --summary-export=performance/results/k6-summary.json performance/k6_api_test.js
 
+      - name: Executar auditoria Lighthouse
+        if: always() && github.event_name != 'pull_request'
+        run: npm run test:lighthouse
+
       - name: Salvar evidências
         if: always()
         uses: actions/upload-artifact@v4
@@ -75,6 +79,14 @@ jobs:
           path: performance/results
           if-no-files-found: warn
 
+      - name: Salvar evidências Lighthouse
+        if: always() && github.event_name != 'pull_request'
+        uses: actions/upload-artifact@v4
+        with:
+          name: evidencias-lighthouse
+          path: performance/lighthouse
+          if-no-files-found: warn
+
       - name: Preparar relatório para o GitHub Pages
         if: always() && github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
         shell: bash
@@ -87,6 +99,12 @@ jobs:
           fi
           if [ -f performance/results/k6-summary.json ]; then
             cp performance/results/k6-summary.json pages/k6-summary.json
+          fi
+          if [ -f performance/lighthouse/lighthouse-report.html ]; then
+            cp performance/lighthouse/lighthouse-report.html pages/lighthouse.html
+          fi
+          if [ -f performance/lighthouse/lighthouse-summary.json ]; then
+            cp performance/lighthouse/lighthouse-summary.json pages/lighthouse-summary.json
           fi
 
       - name: Configurar GitHub Pages
