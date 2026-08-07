@@ -4,12 +4,15 @@
 
 [![Ver Relatório Cucumber](https://img.shields.io/badge/Relatório-Cucumber-23D96C?style=for-the-badge&logo=cucumber&logoColor=white)](https://koyama8.github.io/hcxpert-qa-automation/)
 
+[![Ver Relatório de Performance](https://img.shields.io/badge/Performance-k6-F46800?style=for-the-badge&logo=k6&logoColor=white)](https://koyama8.github.io/hcxpert-qa-automation/performance.html)
+
 Projeto desenvolvido para o desafio técnico de Engenharia de Qualidade, utilizando Cypress, Cucumber e JavaScript.
 
 ## Pré-requisitos
 
 - Node.js 22 ou superior;
 - npm;
+- k6 2 ou superior para a execução local dos testes de performance;
 - credenciais de uma conta exclusiva de testes no Automation Exercise.
 
 ## Instalação
@@ -36,6 +39,7 @@ ignorado pelo Git e não deve ser enviado ao repositório:
 | `npm run test:all` | Executa login, busca, carrinho, checkout e API |
 | `npm run test:e2e` | Executa somente os fluxos Web |
 | `npm run test:api` | Executa somente os cenários de API |
+| `npm run test:perf` | Executa 10 usuários virtuais durante 30 segundos na API alvo |
 | `npm run cy:open` | Abre a interface interativa do Cypress |
 | `npm run report` | Regenera o HTML a partir do NDJSON existente |
 
@@ -83,6 +87,26 @@ npm run report
 
 No GitHub Actions, os relatórios, screenshots e vídeos são publicados como
 artefatos mesmo quando algum cenário falha.
+
+### Teste de performance com k6
+
+O teste em `performance/k6_api_test.js` simula 10 usuários virtuais durante 30
+segundos contra a API alvo. A execução é aprovada somente quando:
+
+- 100% dos checks funcionais passam;
+- a taxa de falhas HTTP permanece abaixo de 1%;
+- o percentil 95 do tempo de resposta permanece abaixo de 800 ms.
+
+Para executar localmente:
+
+```bash
+npm run test:perf
+```
+
+No GitHub Actions, o k6 gera automaticamente `k6-report.html` e
+`k6-summary.json`. Os arquivos são disponibilizados no artefato
+`evidencias-performance`, e o relatório HTML também é publicado no GitHub
+Pages pelo botão **Ver Relatório de Performance** no início deste README.
 
 ### Consultar o relatório no GitHub Actions
 

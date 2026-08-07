@@ -41,6 +41,21 @@ jobs:
         if: always()
         run: npm run report
 
+      - name: Configurar k6
+        if: always() && github.event_name != 'pull_request'
+        uses: grafana/setup-k6-action@v1
+
+      - name: Executar teste de performance k6
+        if: always() && github.event_name != 'pull_request'
+        env:
+          K6_WEB_DASHBOARD: "true"
+          K6_WEB_DASHBOARD_PORT: "-1"
+          K6_WEB_DASHBOARD_PERIOD: "1s"
+          K6_WEB_DASHBOARD_EXPORT: performance/results/k6-report.html
+        run: |
+          mkdir -p performance/results
+          k6 run --summary-export=performance/results/k6-summary.json performance/k6_api_test.js
+
       - name: Salvar evidências
         if: always()
         uses: actions/upload-artifact@v4
@@ -52,6 +67,14 @@ jobs:
             cypress/videos
           if-no-files-found: ignore
 
+      - name: Salvar evidências de performance
+        if: always() && github.event_name != 'pull_request'
+        uses: actions/upload-artifact@v4
+        with:
+          name: evidencias-performance
+          path: performance/results
+          if-no-files-found: warn
+
       - name: Preparar relatório para o GitHub Pages
         if: always() && github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
         shell: bash
@@ -59,6 +82,12 @@ jobs:
           mkdir -p pages
           cp cypress/evidencias/cucumber-report.html pages/index.html
           cp cypress/evidencias/cucumber-report.json pages/cucumber-report.json
+          if [ -f performance/results/k6-report.html ]; then
+            cp performance/results/k6-report.html pages/performance.html
+          fi
+          if [ -f performance/results/k6-summary.json ]; then
+            cp performance/results/k6-summary.json pages/k6-summary.json
+          fi
 
       - name: Configurar GitHub Pages
         if: always() && github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
