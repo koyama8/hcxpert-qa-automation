@@ -3,7 +3,11 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "npm run test:e2e",
+    "cy:open": "cypress open",
+    "test:e2e": "cypress run --browser electron --spec \"cypress/e2e/features/01_login.feature,cypress/e2e/features/02_search.feature,cypress/e2e/features/03_cart.feature,cypress/e2e/features/04_checkout.feature\"",
+    "test:api": "cypress run --browser electron --spec \"cypress/e2e/features/05_api_trello.feature\"",
+    "test:perf": "k6 run performance/k6_api_test.js"
   },
   "keywords": [],
   "author": "",
@@ -12,7 +16,9 @@
   "devDependencies": {
     "@badeball/cypress-cucumber-preprocessor": "^26.0.0",
     "@bahmutov/cypress-esbuild-preprocessor": "^2.2.8",
-    "cypress": "^14.1.0"
+    "ajv": "^8.20.0",
+    "cypress": "^14.1.0",
+    "cypress-plugin-api": "^2.11.2"
   },
   "cypress-cucumber-preprocessor": {
     "stepDefinitions": "cypress/e2e/step_definitions/**/*.js"
