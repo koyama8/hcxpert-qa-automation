@@ -35,7 +35,11 @@ jobs:
         run: npm ci
 
       - name: Executar testes de login, busca, carrinho, checkout e API
-        run: npx cypress run --browser electron --spec "cypress/e2e/features/01_login.feature,cypress/e2e/features/02_search.feature,cypress/e2e/features/03_cart.feature,cypress/e2e/features/04_checkout.feature,cypress/e2e/features/05_api_trello.feature"
+        run: npm run test:all
+
+      - name: Gerar relatório Cucumber HTML
+        if: always()
+        run: npm run report
 
       - name: Salvar evidências
         if: always()
@@ -43,6 +47,48 @@ jobs:
         with:
           name: evidencias-e2e
           path: |
+            cypress/evidencias
             cypress/screenshots
             cypress/videos
           if-no-files-found: ignore
+
+      - name: Preparar relatório para o GitHub Pages
+        if: always() && github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+        shell: bash
+        run: |
+          mkdir -p pages
+          cp cypress/evidencias/cucumber-report.html pages/index.html
+          cp cypress/evidencias/cucumber-report.json pages/cucumber-report.json
+
+      - name: Configurar GitHub Pages
+        if: always() && github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+        uses: actions/configure-pages@v5
+
+      - name: Empacotar relatório do GitHub Pages
+        if: always() && github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: pages
+
+  publicar-relatorio:
+    name: Publicar relatório no GitHub Pages
+    if: always() && github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    needs: testes-e2e
+    runs-on: ubuntu-latest
+
+    permissions:
+      pages: write
+      id-token: write
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    concurrency:
+      group: github-pages
+      cancel-in-progress: true
+
+    steps:
+      - name: Publicar GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
