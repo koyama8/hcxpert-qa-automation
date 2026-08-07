@@ -121,7 +121,7 @@ jobs:
     name: Publicar relatório no GitHub Pages
     if: always() && github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
     needs: testes-e2e
-    runs-on: ubuntu-latest
+    runs-on: macos-latest
 
     permissions:
       pages: write
