@@ -1,30 +1,70 @@
-# Automação de Testes - HCXpert
+# Automação de Testes — HCXpert
 
 <p>
   <a href="https://github.com/koyama8/hcxpert-qa-automation/actions/workflows/main.yml"><img alt="Testes E2E - Cypress" src="https://img.shields.io/github/actions/workflow/status/koyama8/hcxpert-qa-automation/main.yml?branch=main&amp;style=for-the-badge&amp;logo=githubactions&amp;logoColor=white&amp;label=Testes%20E2E"></a>
-  <a href="https://koyama8.github.io/hcxpert-qa-automation/"><img alt="Ver Relatório Cucumber" src="https://img.shields.io/badge/Relatório-Cucumber-23D96C?style=for-the-badge&amp;logo=cucumber&amp;logoColor=white"></a>
-  <a href="https://koyama8.github.io/hcxpert-qa-automation/performance.html"><img alt="Ver Relatório de Performance" src="https://img.shields.io/badge/Performance-k6-F46800?style=for-the-badge&amp;logo=k6&amp;logoColor=white"></a>
-  <a href="https://koyama8.github.io/hcxpert-qa-automation/lighthouse.html"><img alt="Ver Relatório Lighthouse" src="https://img.shields.io/badge/Performance-Lighthouse-F44B21?style=for-the-badge&amp;logo=lighthouse&amp;logoColor=white"></a>
+  <a href="https://koyama8.github.io/hcxpert-qa-automation/"><img alt="Ver relatório Cucumber" src="https://img.shields.io/badge/Relatório-Cucumber-23D96C?style=for-the-badge&amp;logo=cucumber&amp;logoColor=white"></a>
+  <a href="https://koyama8.github.io/hcxpert-qa-automation/performance.html"><img alt="Ver relatório de performance k6" src="https://img.shields.io/badge/Performance-k6-F46800?style=for-the-badge&amp;logo=k6&amp;logoColor=white"></a>
+  <a href="https://koyama8.github.io/hcxpert-qa-automation/lighthouse.html"><img alt="Ver relatório Lighthouse" src="https://img.shields.io/badge/Performance-Lighthouse-F44B21?style=for-the-badge&amp;logo=lighthouse&amp;logoColor=white"></a>
 </p>
 
-Projeto desenvolvido para o desafio técnico de Engenharia de Qualidade, utilizando Cypress, Cucumber e JavaScript.
+Projeto desenvolvido para o desafio técnico de Engenharia de Qualidade da HCXpert. A solução automatiza testes Web e de API com Cypress, BDD com Cucumber, Page Objects, validação de contrato JSON, testes de carga com k6, auditoria Web com Lighthouse e execução contínua no GitHub Actions.
+
+## Cobertura implementada
+
+A suíte possui **23 cenários BDD** distribuídos entre:
+
+- autenticação: login válido, senha incorreta, usuário inexistente e entradas maliciosas;
+- busca: nome exato, parcial, caracteres especiais, busca vazia, produto inexistente e entradas maliciosas;
+- carrinho: inclusão, quantidade, remoção, persistência e composição do valor;
+- checkout: compra válida, formulário incompleto e perda de conectividade;
+- APIs: consulta GET do Trello, criação POST de conta e rejeição de e-mail duplicado;
+- performance: carga de API com k6 e auditoria Web com Lighthouse.
+
+## Tecnologias e arquitetura
+
+- Node.js 22 e JavaScript;
+- Cypress 14;
+- Cucumber/Gherkin com `@badeball/cypress-cucumber-preprocessor`;
+- Page Object Model em `cypress/support/page_objects`;
+- AJV e JSON Schema para validação de contrato;
+- k6 para carga e thresholds de API;
+- Lighthouse para FCP, LCP e score de performance;
+- GitHub Actions, artefatos e GitHub Pages.
+
+```text
+cypress/
+├── e2e/features/          # Features declarativas em Gherkin
+├── e2e/step_definitions/  # Implementação dos passos
+├── fixtures/              # Massa fictícia e schemas
+├── support/page_objects/  # Page Objects
+└── evidencias/            # Relatório Cucumber e evidências
+performance/               # Scripts e resultados de k6/Lighthouse
+scripts/                   # Geração dos relatórios
+security/                  # Configuração opcional do ZAP Baseline
+.github/workflows/         # Pipeline de CI/CD
+```
 
 ## Pré-requisitos
 
 - Node.js 22 ou superior;
 - npm;
-- k6 2 ou superior para a execução local dos testes de performance;
 - Google Chrome para a auditoria Lighthouse local;
-- credenciais de uma conta exclusiva de testes no Automation Exercise.
+- k6 2 ou superior para executar o teste de carga localmente;
+- conta exclusiva de testes no Automation Exercise para login e checkout.
 
-## Instalação
+O Docker é necessário apenas para a execução opcional do ZAP Baseline descrita em `security/README.md`.
+
+## Instalação e configuração local
+
+Clone o projeto e instale as versões registradas no lockfile:
 
 ```bash
+git clone https://github.com/koyama8/hcxpert-qa-automation.git
+cd hcxpert-qa-automation
 npm ci
 ```
 
-Crie um arquivo local `cypress.env.json` na raiz do projeto. Esse arquivo é
-ignorado pelo Git e não deve ser enviado ao repositório:
+Crie `cypress.env.json` na raiz do projeto com credenciais exclusivas para testes. Esse arquivo está ignorado pelo Git e não deve ser commitado:
 
 ```json
 {
@@ -33,110 +73,155 @@ ignorado pelo Git e não deve ser enviado ao repositório:
 }
 ```
 
-## Execução dos Testes
+Como alternativa, configure `CYPRESS_email` e `CYPRESS_senha` como variáveis de ambiente. No GitHub Actions, os secrets esperados são `TEST_USER_EMAIL` e `TEST_USER_PASSWORD`.
+
+Todos os dados de criação presentes em `cypress/fixtures` são fictícios. Os testes de API geram um e-mail único durante cada execução.
+
+## Comandos de execução
 
 | Comando | Escopo |
 | --- | --- |
-| `npm test` | Executa toda a suíte Web e API |
+| `npm test` | Executa toda a suíte Web e API em modo headless |
 | `npm run test:all` | Executa login, busca, carrinho, checkout e API |
-| `npm run test:e2e` | Executa somente os fluxos Web |
-| `npm run test:api` | Executa somente os cenários de API |
-| `npm run test:perf` | Executa 10 usuários virtuais durante 30 segundos na API alvo |
-| `npm run test:lighthouse` | Executa três auditorias Lighthouse na aplicação Web |
+| `npm run test:e2e` | Executa somente os 20 cenários Web |
+| `npm run test:api` | Executa somente os 3 cenários de API |
+| `npm run test:perf` | Executa 10 usuários virtuais durante 30 segundos |
+| `npm run test:lighthouse` | Executa três auditorias Lighthouse e usa a mediana |
 | `npm run cy:open` | Abre a interface interativa do Cypress |
-| `npm run report` | Regenera o HTML a partir do NDJSON existente |
+| `npm run report` | Regenera o relatório Cucumber a partir do NDJSON |
 
-A suíte completa utiliza a conta de testes nos fluxos de login e checkout e
-cria uma conta fictícia pelo endpoint de API. Utilize somente ambientes e
-credenciais destinados à automação.
-
-## Parecer Crítico de Testabilidade
-
-Durante a análise do Automation Exercise, identifiquei que alguns elementos possuem seletores estáveis, como `data-qa` e `id`, mas esse padrão não é aplicado de forma consistente em todas as páginas. Alguns botões, produtos e elementos do carrinho dependem de classes CSS, textos ou da estrutura do DOM, o que pode tornar a automação mais frágil.
-
-Também foram identificados os seguintes pontos:
-
-- A busca vazia ou sem resultados não apresenta uma mensagem clara ao usuário.
-- A quantidade do produto não pode ser alterada diretamente no carrinho.
-- Impostos e frete não são apresentados separadamente no resumo dos valores.
-- Algumas validações do pagamento dependem apenas dos recursos nativos do navegador.
-- Anúncios e elementos carregados dinamicamente podem interferir na estabilidade da automação.
-
-Como melhorias, sugiro:
-
-- Padronizar o uso de `data-qa` ou `data-testid` nos elementos dos fluxos principais.
-- Adicionar nomes acessíveis aos botões representados apenas por ícones.
-- Apresentar mensagens objetivas para busca vazia e produto inexistente.
-- Permitir a alteração da quantidade diretamente no carrinho.
-- Detalhar subtotal, impostos, frete e valor total da compra.
-- Implementar tratamento visual para falhas de conexão, permitindo uma nova tentativa segura.
-
-As respostas HTTP e os contratos das APIs serão analisados na etapa de testes de serviços. Este parecer será atualizado caso sejam encontrados status codes inadequados ou mensagens de erro inconsistentes.
-
-## Relatórios e Evidências
-
-As execuções das features geram automaticamente os seguintes artefatos em
-`cypress/evidencias`:
-
-- `cucumber-report.html`: relatório gráfico navegável;
-- `cucumber-report.json`: resultado estruturado dos cenários;
-- `cucumber-messages.ndjson`: mensagens utilizadas pelo formatador oficial.
-
-Para regenerar o HTML a partir do arquivo NDJSON existente, execute:
+Sequência recomendada para validação local completa:
 
 ```bash
+npm ci
+npm run test:all
+npm run test:perf
+npm run test:lighthouse
 npm run report
 ```
 
-No GitHub Actions, os relatórios, screenshots e vídeos são publicados como
-artefatos mesmo quando algum cenário falha.
+Os cenários dependem de serviços públicos de terceiros. Uma indisponibilidade ou página de manutenção do Automation Exercise/Trello pode causar falhas externas à automação; nesses casos, confirme a disponibilidade do alvo antes de reexecutar.
 
-### Teste de performance com k6
+## APIs e validações
 
-O teste em `performance/k6_api_test.js` simula 10 usuários virtuais durante 30
-segundos contra a API alvo. A execução é aprovada somente quando:
+### GET Trello
+
+O cenário consulta `GET /1/actions/592f11060f95a3d3d46a987a` e valida:
+
+- status HTTP 200;
+- contrato com JSON Schema;
+- presença de `data.list.name`;
+- registro do nome da lista no log como evidência.
+
+### POST Automation Exercise
+
+Os cenários de criação de conta validam:
+
+- transporte HTTP 200 e código de negócio 201 na criação;
+- mensagem de sucesso `User created!`;
+- rejeição da segunda criação com o mesmo e-mail;
+- código de negócio 400 e mensagem `Email already exists!`;
+- tempo de resposta inferior a 2.000 ms.
+
+## Performance
+
+### Carga de API com k6
+
+O script `performance/k6_api_test.js` simula **10 usuários virtuais durante 30 segundos** contra a API do Trello. A execução é aprovada quando:
 
 - 100% dos checks funcionais passam;
-- a taxa de falhas HTTP permanece abaixo de 1%;
-- o percentil 95 do tempo de resposta permanece abaixo de 800 ms.
+- a taxa de falhas HTTP é inferior a 1%;
+- o percentil 95 do tempo de resposta é inferior a 800 ms.
 
-Para executar localmente:
-
-```bash
-npm run test:perf
-```
-
-No GitHub Actions, o k6 gera automaticamente `k6-report.html` e
-`k6-summary.json`. Os arquivos são disponibilizados no artefato
-`evidencias-performance`, e o relatório HTML também é publicado no GitHub
-Pages pelo botão **Ver Relatório de Performance** no início deste README.
+O pipeline gera `k6-report.html` e `k6-summary.json`, publica o artefato `evidencias-performance` e disponibiliza o HTML pelo botão **Performance — k6**.
 
 ### Performance Web com Lighthouse
 
-A auditoria Lighthouse no pipeline executa três medições em modo desktop e utiliza a mediana
-para reduzir variações de rede e infraestrutura. São acompanhados os limites
-recomendados de FCP menor ou igual a 1,8 segundo e LCP menor ou igual a 2,5
-segundos.
+São executadas três medições desktop. A mediana reduz variações de rede e infraestrutura, com os seguintes limites de referência:
 
-Como a aplicação auditada é um ambiente público de terceiros, violações desses
-limites são registradas como alertas e evidências, sem bloquear toda a suíte
-funcional. Para executar localmente:
+- FCP menor ou igual a 1,8 segundo;
+- LCP menor ou igual a 2,5 segundos.
 
-```bash
-npm run test:lighthouse
-```
+Como o alvo é um ambiente público de terceiros, violações são registradas como alertas e evidências sem bloquear toda a suíte funcional. O pipeline publica `evidencias-lighthouse` e o relatório representativo pelo botão **Performance — Lighthouse**.
 
-O pipeline publica os relatórios HTML/JSON no artefato
-`evidencias-lighthouse`. O relatório representativo também fica disponível no
-GitHub Pages pelo botão **Ver Relatório Lighthouse** no início deste README.
+## Relatórios, evidências e CI/CD
 
-### Consultar o relatório no GitHub Actions
+Cada execução das features gera em `cypress/evidencias`:
 
-1. Acesse a aba **Actions** do repositório;
-2. abra a execução desejada do workflow **Testes E2E - Cypress**;
-3. na seção **Artifacts**, baixe `evidencias-e2e`;
-4. extraia o arquivo e abra `cypress/evidencias/cucumber-report.html` no
-   navegador.
+- `cucumber-report.html`: relatório gráfico navegável;
+- `cucumber-report.json`: resultado estruturado;
+- `cucumber-messages.ndjson`: mensagens do formatador Cucumber.
 
-O badge no início deste README permite consultar rapidamente o estado da última
-execução do pipeline na branch `main`.
+O workflow `.github/workflows/main.yml` realiza:
+
+1. checkout e instalação reproduzível com `npm ci`;
+2. execução headless da suíte Web/API;
+3. geração do relatório Cucumber;
+4. execução de k6 e Lighthouse em push para `main`;
+5. upload de HTML, JSON, screenshots e vídeos como artefatos;
+6. publicação dos relatórios no GitHub Pages.
+
+Para consultar uma execução, abra **Actions → Testes E2E - Cypress**, selecione o workflow e baixe `evidencias-e2e`, `evidencias-performance` ou `evidencias-lighthouse`. Os botões no início deste README abrem os relatórios publicados.
+
+## Segurança e privacidade
+
+- credenciais locais e arquivos de ambiente não são versionados;
+- o pipeline recebe credenciais por GitHub Secrets;
+- fixtures usam dados fictícios e e-mails gerados dinamicamente;
+- os cenários tratam XSS e SQL Injection como entradas não confiáveis em login e busca;
+- existe configuração documentada para ZAP Baseline passivo, mas o scan DAST não faz parte do pipeline atual.
+
+Nenhuma varredura ativa deve ser executada contra um ambiente sem autorização explícita do responsável.
+
+## Parecer crítico de testabilidade
+
+O Automation Exercise possui seletores estáveis como `data-qa` e `id`, porém esse padrão não é consistente em todas as páginas. Alguns botões, produtos e elementos do carrinho dependem de classes CSS, textos ou da estrutura do DOM, aumentando o risco de manutenção e falsos negativos.
+
+Outros pontos observados:
+
+- buscas vazias ou sem resultado não apresentam feedback suficientemente claro;
+- a quantidade não pode ser alterada diretamente no carrinho;
+- impostos e frete não aparecem separadamente no resumo;
+- algumas validações de pagamento dependem apenas dos recursos nativos do navegador;
+- anúncios, recursos dinâmicos e indisponibilidades do ambiente público afetam a estabilidade;
+- algumas APIs retornam HTTP 200 mesmo quando o código de negócio representa erro, exigindo validação das duas camadas.
+
+Recomendações:
+
+- padronizar `data-qa` ou `data-testid` nos fluxos principais;
+- adicionar nomes acessíveis a botões representados somente por ícones;
+- oferecer mensagens objetivas para busca vazia e produto inexistente;
+- detalhar subtotal, impostos, frete e total;
+- permitir alteração de quantidade diretamente no carrinho;
+- padronizar status HTTP e corpo de erro das APIs;
+- disponibilizar um ambiente de testes controlado, com dados isolados e menor interferência externa.
+
+## Matriz de rastreabilidade
+
+| Requisito do desafio | Evidência no projeto | Status |
+| --- | --- | --- |
+| Login válido, senha incorreta e usuário inexistente | `01_login.feature` e `LoginPage.js` | Atendido |
+| Busca exata, parcial, vazia, especial e inexistente | `02_search.feature` e `ProductsPage.js` | Atendido |
+| Carrinho: inclusão, quantidade, remoção e persistência | `03_cart.feature` e `CartPage.js` | Atendido |
+| Checkout válido, campos incompletos e falha de conexão | `04_checkout.feature` e `CheckoutPage.js` | Atendido |
+| GET Trello com status, log e JSON Schema | `05_api_trello.feature`, `apiSteps.js` e `trelloActionSchema.json` | Atendido |
+| POST de conta com fixture, regra de negócio e resposta menor que 2 s | `05_api_trello.feature`, `apiSteps.js` e `payload_account.json` | Atendido |
+| Cenário negativo de API | Rejeição de e-mail duplicado em `05_api_trello.feature` | Atendido |
+| POM, DRY e Gherkin declarativo | `page_objects`, steps reutilizáveis e features | Atendido |
+| Execução headless sem `cy.wait()` fixo | scripts do `package.json` e workflow | Atendido |
+| Dados fictícios e tratamento de segredos | fixtures, e-mail dinâmico, `.env.example` e GitHub Secrets | Atendido |
+| XSS e SQL Injection em login e busca | `01_login.feature` e `02_search.feature` | Atendido |
+| DAST básico | configuração e instruções do ZAP Baseline em `security/` | Parcialmente atendido — fora do pipeline |
+| k6 com 10 VUs/30 s e p95 menor que 800 ms | `performance/k6_api_test.js` e relatório publicado | Atendido |
+| Lighthouse com FCP e LCP | `scripts/run-lighthouse.js` e relatório publicado | Atendido |
+| Pipeline headless, relatórios e artefatos | `.github/workflows/main.yml` | Atendido |
+| Relatório gráfico Cucumber/HTML | `cypress/evidencias` e GitHub Pages | Atendido |
+| README com pré-requisitos, comandos e parecer | este documento | Atendido |
+| Execução da suíte em container | não implementada; execução documentada localmente e no GitHub Actions | Não atendido |
+
+## Limitações conhecidas
+
+- O projeto depende de ambientes públicos sem controle de disponibilidade ou massa de dados.
+- O ZAP Baseline está documentado, mas não é executado automaticamente no CI.
+- A suíte funcional não possui imagem Docker própria; a execução reproduzível ocorre localmente com Node.js 22 ou no GitHub Actions.
+- Alertas do Lighthouse podem variar conforme rede, anúncios e carga do servidor externo.
