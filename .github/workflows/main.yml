@@ -34,8 +34,8 @@ jobs:
       - name: Instalar dependências
         run: npm ci
 
-      - name: Executar testes de login, busca, carrinho e checkout
-        run: npx cypress run --browser electron --spec "cypress/e2e/features/01_login.feature,cypress/e2e/features/02_search.feature,cypress/e2e/features/03_cart.feature,cypress/e2e/features/04_checkout.feature"
+      - name: Executar testes de login, busca, carrinho, checkout e API
+        run: npx cypress run --browser electron --spec "cypress/e2e/features/01_login.feature,cypress/e2e/features/02_search.feature,cypress/e2e/features/03_cart.feature,cypress/e2e/features/04_checkout.feature,cypress/e2e/features/05_api_trello.feature"
 
       - name: Salvar evidências
         if: always()

@@ -1,12 +1,17 @@
 # language: en
 
 @api
-Feature: Consulta de ação na API do Trello
+Feature: Validação de APIs
   Como profissional de qualidade
-  Quero consultar uma ação pela API do Trello
-  Para validar a resposta e registrar informações relevantes
+  Quero validar integrações por API
+  Para garantir contratos, regras de negócio e desempenho
 
   Scenario: Consultar uma ação existente
     Given que o endpoint de ações do Trello está disponível
     When o usuário consultar a ação "592f11060f95a3d3d46a987a"
     Then a resposta deverá possuir status 200, respeitar o contrato JSON e registrar o nome da lista como evidência
+
+  Scenario: Criar uma conta com dados válidos
+    Given que o endpoint de criação de conta está disponível
+    When o usuário enviar os dados válidos para criação da conta
+    Then a API deverá confirmar a criação da conta e responder em menos de 2000 milissegundos
