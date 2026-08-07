@@ -78,6 +78,39 @@ class ProductsPage {
     cy.url().should('include', '/products');
     cy.get('body').should('be.visible');
   }
+
+  validarEntradaTratadaComoTexto(entrada) {
+    this.elements.campoBusca()
+      .should('be.visible')
+      .and('have.value', entrada);
+
+    this.elements.tituloProdutos()
+      .should('be.visible')
+      .and('contain.text', 'Searched Products');
+
+    this.validarPaginaDisponivel();
+  }
+
+  validarAusenciaDeErroTecnico() {
+    cy.get('body')
+      .should('not.contain.text', 'SQL syntax')
+      .and('not.contain.text', 'Database error')
+      .and('not.contain.text', 'Stack trace')
+      .and('not.contain.text', 'Traceback');
+  }
+
+  validarPayloadNaoConvertidoEmScript(conteudoMalicioso) {
+    cy.get('script').then(($scripts) => {
+      const scriptsInjetados = $scripts.toArray().filter(
+        (script) => script.textContent.trim() === conteudoMalicioso,
+      );
+
+      expect(
+        scriptsInjetados,
+        'o payload não deve criar um elemento script executável',
+      ).to.be.empty;
+    });
+  }
 }
 
 module.exports = new ProductsPage();

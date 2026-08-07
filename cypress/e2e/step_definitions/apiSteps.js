@@ -37,7 +37,7 @@ When('o usuário enviar os dados válidos para criação da conta', () => {
   cy.fixture('payload_account').then(({ dadosConta }) => {
     const dadosContaValida = {
       ...dadosConta,
-      email: `matheus.koyama.${Date.now()}@example.com`,
+      email: `usuario.teste.${Date.now()}@example.com`,
     }
 
     cy.api({
