@@ -15,3 +15,8 @@ Feature: Validação de APIs
     Given que o endpoint de criação de conta está disponível
     When o usuário enviar os dados válidos para criação da conta
     Then a API deverá confirmar a criação da conta e responder em menos de 2000 milissegundos
+
+  Scenario: Rejeitar criação de conta com e-mail já cadastrado
+    Given que o endpoint de criação de conta está disponível
+    When o usuário tentar criar duas contas com o mesmo e-mail
+    Then a API deverá rejeitar a duplicidade com uma mensagem de regra de negócio
