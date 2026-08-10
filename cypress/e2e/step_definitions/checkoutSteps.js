@@ -14,14 +14,10 @@ const dadosPagamento = {
   ano: '2030',
 };
 
-const obterCredenciais = () => ({
-  email: Cypress.env('email'),
-  senha: Cypress.env('senha'),
-});
-
 Given('que o usuário está autenticado e possui um produto no carrinho', () => {
-  const { email, senha } = obterCredenciais();
-  checkoutPage.prepararCarrinho(email, senha);
+  cy.env(['email', 'senha']).then(({ email, senha }) => {
+    checkoutPage.prepararCarrinho(email, senha);
+  });
 });
 
 When('o usuário revisar o endereço e prosseguir para o pagamento', () => {
@@ -39,8 +35,9 @@ Then('uma mensagem de pedido realizado com sucesso deverá ser apresentada', () 
 });
 
 Given('que o usuário está autenticado e está na página de pagamento', () => {
-  const { email, senha } = obterCredenciais();
-  checkoutPage.prepararPaginaPagamento(email, senha);
+  cy.env(['email', 'senha']).then(({ email, senha }) => {
+    checkoutPage.prepararPaginaPagamento(email, senha);
+  });
 });
 
 When('o usuário deixar campos obrigatórios do pagamento sem preenchimento',() => {

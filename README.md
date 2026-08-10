@@ -22,8 +22,8 @@ A suíte possui **23 cenários BDD** distribuídos entre:
 
 ## Tecnologias e arquitetura
 
-- Node.js 22 e JavaScript;
-- Cypress 14;
+- Node.js 22.23.2 e JavaScript;
+- Cypress 15.20.0;
 - Cucumber/Gherkin com `@badeball/cypress-cucumber-preprocessor`;
 - Page Object Model em `cypress/support/page_objects`;
 - AJV e JSON Schema para validação de contrato;
@@ -46,7 +46,7 @@ security/                  # Configuração opcional do ZAP Baseline
 
 ## Pré-requisitos
 
-- Node.js 22 ou superior;
+- Node.js 22.23.2 (registrado em `.nvmrc`); versões anteriores a 22.19 não são compatíveis com o Lighthouse utilizado;
 - npm;
 - Google Chrome para a auditoria Lighthouse local;
 - k6 2 ou superior para executar o teste de carga localmente;
@@ -88,12 +88,14 @@ Todos os dados de criação presentes em `cypress/fixtures` são fictícios. Os 
 | `npm run test:perf` | Executa 10 usuários virtuais durante 30 segundos |
 | `npm run test:lighthouse` | Executa três auditorias Lighthouse e usa a mediana |
 | `npm run cy:open` | Abre a interface interativa do Cypress |
+| `npm run cy:verify` | Confirma que o binário Cypress correspondente ao pacote está instalado |
 | `npm run report` | Regenera o relatório Cucumber a partir do NDJSON |
 
 Sequência recomendada para validação local completa:
 
 ```bash
 npm ci
+npm run cy:verify
 npm run test:all
 npm run test:perf
 npm run test:lighthouse
@@ -154,12 +156,13 @@ Cada execução das features gera em `cypress/evidencias`:
 
 O workflow `.github/workflows/main.yml` realiza:
 
-1. checkout e instalação reproduzível com `npm ci`;
-2. execução headless da suíte Web/API;
-3. geração do relatório Cucumber;
-4. execução de k6 e Lighthouse em push para `main`;
-5. upload de HTML, JSON, screenshots e vídeos como artefatos;
-6. publicação dos relatórios no GitHub Pages.
+1. checkout, configuração do Node.js pela `.nvmrc` e instalação reproduzível com `npm ci`;
+2. restauração do cache do binário Cypress e validação explícita com `cypress verify`;
+3. execução headless da suíte Web/API em Ubuntu 24.04;
+4. geração do relatório Cucumber;
+5. execução de k6 e Lighthouse em push para `main`;
+6. upload de HTML, JSON, screenshots e vídeos como artefatos;
+7. publicação dos relatórios no GitHub Pages.
 
 Para consultar uma execução, abra **Actions → Testes E2E - Cypress**, selecione o workflow e baixe `evidencias-e2e`, `evidencias-performance` ou `evidencias-lighthouse`. Os botões no início deste README abrem os relatórios publicados.
 
@@ -167,6 +170,7 @@ Para consultar uma execução, abra **Actions → Testes E2E - Cypress**, seleci
 
 - credenciais locais e arquivos de ambiente não são versionados;
 - o pipeline recebe credenciais por GitHub Secrets;
+- a auditoria das dependências de produção não possui vulnerabilidades conhecidas; riscos transitivos de desenvolvimento estão registrados em `docs/security/dependency-risk-register.md`;
 - fixtures usam dados fictícios e e-mails gerados dinamicamente;
 - os cenários tratam XSS e SQL Injection como entradas não confiáveis em login e busca;
 - existe configuração documentada para ZAP Baseline passivo, mas o scan DAST não faz parte do pipeline atual.
@@ -223,5 +227,5 @@ Recomendações:
 
 - O projeto depende de ambientes públicos sem controle de disponibilidade ou massa de dados.
 - O ZAP Baseline está documentado, mas não é executado automaticamente no CI.
-- A suíte funcional não possui imagem Docker própria; a execução reproduzível ocorre localmente com Node.js 22 ou no GitHub Actions.
+- A suíte funcional não possui imagem Docker própria; a execução reproduzível ocorre localmente com Node.js 22.23.2 ou no GitHub Actions em Ubuntu 24.04.
 - Alertas do Lighthouse podem variar conforme rede, anúncios e carga do servidor externo.

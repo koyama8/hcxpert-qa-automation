@@ -14,7 +14,7 @@ permissions:
 
 jobs:
   testes-e2e:
-    runs-on: macos-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
 
     env:
@@ -28,11 +28,29 @@ jobs:
       - name: Configurar Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version-file: .nvmrc
           cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Restaurar cache do binário Cypress
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/Cypress
+          key: cypress-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
 
       - name: Instalar dependências
         run: npm ci
+
+      - name: Registrar ambiente de execução
+        run: |
+          node --version
+          npm --version
+          npx cypress version
+          npx cypress cache path
+          npx cypress cache list
+
+      - name: Verificar binário Cypress
+        run: npm run cy:verify
 
       - name: Executar testes de login, busca, carrinho, checkout e API
         run: npm run test:all

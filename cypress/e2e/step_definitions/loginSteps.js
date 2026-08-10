@@ -13,11 +13,10 @@ Given('que o usuário está na página de autenticação', () => {
 })
 
 When('o usuário informar um e-mail e uma senha válidos',() => {
-    const email = Cypress.env('email')
-    const senha = Cypress.env('senha')
-
-    loginPage.preencherEmail(email)
-    loginPage.preencherSenha(senha)
+    cy.env(['email', 'senha']).then(({ email, senha }) => {
+      loginPage.preencherEmail(email)
+      loginPage.preencherSenha(senha)
+    })
 })
 
 When('solicitar a autenticação',() =>{
@@ -29,11 +28,12 @@ Then('o usuário deverá ser autenticado e seu nome deverá ser exibido',() => {
 })
 
 When('o usuário informar um e-mail cadastrado e uma senha incorreta',() => {
-    const email = Cypress.env('email')
     const senha = 'senhaIncorreta123' 
 
-    loginPage.preencherEmail(email)
-    loginPage.preencherSenha(senha)
+    cy.env(['email']).then(({ email }) => {
+      loginPage.preencherEmail(email)
+      loginPage.preencherSenha(senha)
+    })
 })
 
 Then('uma mensagem de credenciais inválidas deverá ser exibida sem autenticar o usuário',() =>{
@@ -50,11 +50,12 @@ When('o usuário informar um e-mail não cadastrado e uma senha',() => {
 })
 
 When('o usuário inserir uma expressão de SQL Injection no campo de senha', () => {
-    const email = Cypress.env('email')
     const sqlInjection  = "' OR '1'='1";
 
-    loginPage.preencherEmail(email)
-    loginPage.preencherSenha(sqlInjection)
+    cy.env(['email']).then(({ email }) => {
+      loginPage.preencherEmail(email)
+      loginPage.preencherSenha(sqlInjection)
+    })
 })
 
 Then('o sistema deverá rejeitar a tentativa sem autenticar o usuário',() => {
@@ -63,7 +64,6 @@ Then('o sistema deverá rejeitar a tentativa sem autenticar o usuário',() => {
 })
 
 When('o usuário inserir um script malicioso no campo de senha',() =>{
-    const email = Cypress.env('email')
     const payloadXss = '<script>alert("xss")</script>';
 
     alertaXssExecutado = false;
@@ -72,8 +72,10 @@ When('o usuário inserir um script malicioso no campo de senha',() =>{
     alertaXssExecutado = true;
     })
      
-    loginPage.preencherEmail(email)
-    loginPage.preencherSenha(payloadXss)
+    cy.env(['email']).then(({ email }) => {
+      loginPage.preencherEmail(email)
+      loginPage.preencherSenha(payloadXss)
+    })
 })
 
 Then('o sistema deverá impedir a execução do script sem autenticar o usuário', () => {
@@ -87,4 +89,3 @@ Then('o sistema deverá impedir a execução do script sem autenticar o usuário
   loginPage.validarMensagemCredenciaisInvalidas();
   loginPage.validarUsuarioNaoAutenticado();
 });
-

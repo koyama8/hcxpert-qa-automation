@@ -5,6 +5,7 @@
   "scripts": {
     "test": "npm run test:all",
     "cy:open": "cypress open",
+    "cy:verify": "cypress verify",
     "test:all": "cypress run --browser electron --spec \"cypress/e2e/features/01_login.feature,cypress/e2e/features/02_search.feature,cypress/e2e/features/03_cart.feature,cypress/e2e/features/04_checkout.feature,cypress/e2e/features/05_api_trello.feature\"",
     "test:e2e": "cypress run --browser electron --spec \"cypress/e2e/features/01_login.feature,cypress/e2e/features/02_search.feature,cypress/e2e/features/03_cart.feature,cypress/e2e/features/04_checkout.feature\"",
     "test:api": "cypress run --browser electron --spec \"cypress/e2e/features/05_api_trello.feature\"",
@@ -16,13 +17,16 @@
   "author": "",
   "license": "ISC",
   "description": "",
+  "engines": {
+    "node": ">=22.19.0 <23"
+  },
   "devDependencies": {
     "@badeball/cypress-cucumber-preprocessor": "^26.0.0",
     "@bahmutov/cypress-esbuild-preprocessor": "^2.2.8",
     "ajv": "^8.20.0",
     "chrome-launcher": "^1.2.1",
-    "cypress": "^14.1.0",
-    "cypress-plugin-api": "^2.11.2",
+    "cypress": "15.20.0",
+    "cypress-plugin-api": "2.12.0",
     "lighthouse": "^13.4.1"
   },
   "cypress-cucumber-preprocessor": {
