@@ -7,8 +7,7 @@ class ProductsPage {
     nomesProdutos: () => cy.get('.features_items > .col-sm-4 .productinfo p:visible'),
   };
 
-  acessarPagina() {
-    cy.visit('/products');
+  validarPaginaCarregada() {
     this.elements.tituloProdutos()
       .should('be.visible')
       .and('contain.text', 'All Products');

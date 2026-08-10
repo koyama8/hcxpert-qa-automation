@@ -7,9 +7,12 @@ const {
 let alertaXssExecutado = false;
 
 const loginPage = require('../../support/page_objects/LoginPage');
+const homePage = require('../../support/page_objects/HomePage');
+const usuarios = require('../../fixtures/users.json');
 
 Given('que o usuário está na página de autenticação', () => {
-  loginPage.acessarPagina();
+  homePage.abrirPaginaAutenticacao();
+  loginPage.validarPaginaCarregada();
 })
 
 When('o usuário informar um e-mail e uma senha válidos',() => {
@@ -28,7 +31,7 @@ Then('o usuário deverá ser autenticado e seu nome deverá ser exibido',() => {
 })
 
 When('o usuário informar um e-mail cadastrado e uma senha incorreta',() => {
-    const senha = 'senhaIncorreta123' 
+    const { senha } = usuarios.credenciaisInvalidas;
 
     cy.env(['email']).then(({ email }) => {
       loginPage.preencherEmail(email)
@@ -42,15 +45,15 @@ Then('uma mensagem de credenciais inválidas deverá ser exibida sem autenticar 
 })
 
 When('o usuário informar um e-mail não cadastrado e uma senha',() => {
-    const emailInexistente  = `usuario.inexistente.${Date.now()}@example.com`
-    const senha  = 'senhaInexistente123'
+    const { emailPrefixo, emailDominio, senha } = usuarios.usuarioInexistente;
+    const emailInexistente = `${emailPrefixo}.${Date.now()}@${emailDominio}`;
 
     loginPage.preencherEmail(emailInexistente)
     loginPage.preencherSenha(senha)
 })
 
 When('o usuário inserir uma expressão de SQL Injection no campo de senha', () => {
-    const sqlInjection  = "' OR '1'='1";
+    const { sqlInjection } = usuarios.seguranca;
 
     cy.env(['email']).then(({ email }) => {
       loginPage.preencherEmail(email)
@@ -64,7 +67,7 @@ Then('o sistema deverá rejeitar a tentativa sem autenticar o usuário',() => {
 })
 
 When('o usuário inserir um script malicioso no campo de senha',() =>{
-    const payloadXss = '<script>alert("xss")</script>';
+    const payloadXss = usuarios.seguranca.xss;
 
     alertaXssExecutado = false;
 

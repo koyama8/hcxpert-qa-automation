@@ -5,6 +5,7 @@ const {
 } = require('@badeball/cypress-cucumber-preprocessor');
 
 const productsPage = require('../../support/page_objects/ProductsPage');
+const homePage = require('../../support/page_objects/HomePage');
 
 const produtoExato = 'Blue Top';
 const termoParcial = 'Blue';
@@ -16,7 +17,8 @@ const payloadXss = '<script>alert(1)</script>';
 let alertaXssExecutado = false;
 
 Given('que o usuário está na página de produtos', () => {
-  productsPage.acessarPagina();
+  homePage.abrirPaginaProdutos();
+  productsPage.validarPaginaCarregada();
 });
 
 When('o usuário informar o nome exato de um produto existente', () => {

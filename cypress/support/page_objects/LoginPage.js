@@ -7,8 +7,10 @@ class LoginPage {
     loggedUser: () => cy.contains('a', 'Logged in as'),
   };
 
-  acessarPagina() {
-    cy.visit('/login');
+  validarPaginaCarregada() {
+    this.elements.emailInput().should('be.visible');
+    this.elements.passwordInput().should('be.visible');
+    this.elements.loginButton().should('be.visible');
   }
 
   preencherEmail(email) {

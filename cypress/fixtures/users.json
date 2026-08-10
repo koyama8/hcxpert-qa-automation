@@ -1,1 +1,14 @@
-
+{
+  "credenciaisInvalidas": {
+    "senha": "senhaIncorreta123"
+  },
+  "usuarioInexistente": {
+    "emailPrefixo": "usuario.inexistente",
+    "emailDominio": "example.com",
+    "senha": "senhaInexistente123"
+  },
+  "seguranca": {
+    "sqlInjection": "' OR '1'='1",
+    "xss": "<script>alert(\"xss\")</script>"
+  }
+}

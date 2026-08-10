@@ -77,6 +77,8 @@ Como alternativa, configure `CYPRESS_email` e `CYPRESS_senha` como variáveis de
 
 Todos os dados de criação presentes em `cypress/fixtures` são fictícios. Os testes de API geram um e-mail único durante cada execução.
 
+O arquivo `cypress/fixtures/users.json` centraliza as massas negativas e os payloads de segurança do login. Credenciais válidas não são armazenadas em fixtures: continuam sendo fornecidas por variáveis de ambiente ou GitHub Secrets.
+
 ## Comandos de execução
 
 | Comando | Escopo |
@@ -126,6 +128,8 @@ Os cenários de criação de conta validam:
 - tempo de resposta inferior a 2.000 ms.
 
 ## Performance
+
+Os testes não funcionais são mantidos em scripts próprios de k6, Lighthouse e ZAP. Eles não são representados por uma feature Gherkin vazia, evitando contabilizar como cenário automatizado um artefato sem implementação.
 
 ### Carga de API com k6
 
