@@ -4,10 +4,10 @@ const routes = require('../config/routes');
 const uiMessages = require('../config/uiMessages');
 
 class CartAssertions {
-  validarPaginaDetalhesProduto() {
-    cartPage.elements.nomeProdutoDetalhes()
-      .should('be.visible')
-      .and('not.be.empty');
+  validarPaginaDetalhesProduto(productId) {
+    cartPage.elements.idProdutoDetalhes()
+      .should('have.value', String(productId));
+    cartPage.elements.campoQuantidade().should('be.visible');
   }
 
   validarProdutoAdicionado() {

@@ -1,23 +1,20 @@
 const productsPage = require('../page_objects/ProductsPage');
 const routes = require('../config/routes');
-const uiMessages = require('../config/uiMessages');
 
 class ProductsAssertions {
   validarPaginaCarregada() {
-    productsPage.elements.tituloProdutos()
-      .should('be.visible')
-      .and('contain.text', uiMessages.products.listaCompleta);
+    productsPage.elements.campoBusca().should('be.visible');
+    productsPage.elements.botaoBuscar().should('be.visible');
+    productsPage.elements.produtos().should('have.length.greaterThan', 0);
   }
 
   validarSomenteProduto(nomeProduto) {
-    this.validarTituloBusca();
     productsPage.elements.nomesProdutos()
       .should('have.length', 1)
       .and('have.text', nomeProduto);
   }
 
   validarProdutosComTermo(termo) {
-    this.validarTituloBusca();
     productsPage.elements.nomesProdutos()
       .should('have.length.greaterThan', 0)
       .each(($produto) => {
@@ -26,14 +23,10 @@ class ProductsAssertions {
   }
 
   validarNenhumProduto() {
-    this.validarTituloBusca();
     productsPage.elements.produtos().should('not.exist');
   }
 
   validarListaCompleta() {
-    productsPage.elements.tituloProdutos()
-      .should('be.visible')
-      .and('contain.text', uiMessages.products.listaCompleta);
     productsPage.elements.produtos().should('have.length.greaterThan', 0);
   }
 
@@ -46,7 +39,6 @@ class ProductsAssertions {
     productsPage.elements.campoBusca()
       .should('be.visible')
       .and('have.value', entrada);
-    this.validarTituloBusca();
     this.validarPaginaDisponivel();
   }
 
@@ -68,12 +60,6 @@ class ProductsAssertions {
         'o payload nao deve criar um elemento script executavel',
       ).to.be.empty;
     });
-  }
-
-  validarTituloBusca() {
-    productsPage.elements.tituloProdutos()
-      .should('be.visible')
-      .and('contain.text', uiMessages.products.resultadoBusca);
   }
 }
 

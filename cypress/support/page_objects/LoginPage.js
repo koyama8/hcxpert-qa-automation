@@ -1,9 +1,12 @@
+const selectors = require('../config/selectors');
+
 class LoginPage {
   elements = {
     emailInput: () => cy.getByQa('login-email'),
     passwordInput: () => cy.getByQa('login-password'),
     loginButton: () => cy.getByQa('login-button'),
-    loginError: () => cy.get('form[action="/login"] p'),
+    loginError: () => cy.getByAttribute('action', '/login')
+      .find(selectors.login.errorMessage),
     logoutLink: () => cy.getByHref('/logout'),
   };
 

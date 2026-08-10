@@ -1,12 +1,14 @@
+const selectors = require('../config/selectors');
+
 class ProductsPage {
   elements = {
     campoBusca: () => cy.getById('search_product'),
     botaoBuscar: () => cy.getById('submit_search'),
-    tituloProdutos: () => cy.get('.features_items > h2.title'),
-    produtos: () => cy.get('a[data-product-id]:visible'),
-    nomesProdutos: () => cy.get('a[data-product-id]:visible').siblings('p'),
-    body: () => cy.get('body'),
-    scripts: () => cy.get('script'),
+    produtos: () => cy.getVisibleByAttribute('data-product-id'),
+    nomesProdutos: () => cy.getVisibleByAttribute('data-product-id')
+      .siblings(selectors.products.nameRelativeToControl),
+    body: () => cy.getByTag(selectors.common.body),
+    scripts: () => cy.getByTag(selectors.common.scripts),
   };
 
   informarTermo(termo) {

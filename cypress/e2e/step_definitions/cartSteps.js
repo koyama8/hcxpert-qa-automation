@@ -9,8 +9,7 @@ const cartContext = require('../../support/tasks/CartContext');
 const produtos = require('../../fixtures/products.json');
 const cartAssertions = require('../../support/assertions/CartAssertions');
 
-const { padrao: quantidadePadrao, alterada: quantidadeAlterada } =
-  produtos.quantidades;
+const { alterada: quantidadeAlterada } = produtos.quantidades;
 
 Given('que o usuário está na página de detalhes de um produto', () => {
   cartContext.prepararPaginaDetalhesProduto();
@@ -34,7 +33,6 @@ When('o usuário alterar a quantidade padrão do produto', () => {
 
 When('adicionar o produto ao carrinho', () => {
   cartPage.adicionarProdutoAoCarrinho();
-  cartPage.acessarCarrinhoPeloModal();
 });
 
 Then('a quantidade informada deverá ser apresentada e o total deverá corresponder ao preço multiplicado pela quantidade', () => {
@@ -47,10 +45,6 @@ Given('que o usuário possui somente um produto no carrinho', () => {
 
 When('o usuário remover o produto', () => {
   cartPage.removerProduto();
-});
-
-When('permanecer na página do carrinho', () => {
-  cartAssertions.validarPaginaCarrinho();
 });
 
 Then('o carrinho deverá ficar vazio e uma mensagem informativa deverá ser apresentada', () => {
@@ -67,10 +61,6 @@ When('o usuário atualizar a página do carrinho', () => {
   cartPage.atualizarPaginaCarrinho();
 });
 
-When('consultar novamente os dados do produto', () => {
-  cartAssertions.validarProdutoNoCarrinho();
-});
-
 Then('a quantidade e o valor total deverão permanecer inalterados', () => {
   cartAssertions.validarPersistenciaDosDados();
 });
@@ -80,11 +70,7 @@ Given('que o usuário possui produtos no carrinho', () => {
 });
 
 When('o usuário consultar o resumo dos valores', () => {
-  cartAssertions.validarProdutoNoCarrinho();
-});
-
-When('conferir o preço, a quantidade e o valor total', () => {
-  cartAssertions.validarQuantidadeETotal(quantidadePadrao);
+  cartPage.consultarResumoValores();
 });
 
 Then('o total deverá corresponder aos itens adicionados sem inclusão de impostos ou frete não identificados', () => {

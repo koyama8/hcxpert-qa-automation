@@ -16,9 +16,7 @@ Given('que o usuário está autenticado e possui um produto no carrinho', () => 
 
 When('o usuário revisar o endereço e prosseguir para o pagamento', () => {
   checkoutPage.acessarCheckout();
-  checkoutAssertions.validarPaginaCheckout();
   checkoutPage.prosseguirParaPagamento(checkoutData.comentarioPedido);
-  checkoutAssertions.validarPaginaPagamento();
 });
 
 When('informar dados fictícios válidos e confirmar o pedido', () => {

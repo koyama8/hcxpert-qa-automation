@@ -56,13 +56,16 @@ security/                  # Configuração opcional do ZAP Baseline
 
 ### Estratégia de seletores
 
-Os seletores seguem uma ordem de prioridade única: `data-qa`, IDs funcionais,
-atributos semânticos (`href`, `name` e `action`) e, somente quando a aplicação
-externa não oferece alternativa, seletores estruturais escopados ao componente.
-Os comandos `getByQa`, `getById` e `getByHref` ficam centralizados em
-`cypress/support/commands.js`. Texto visível é usado como resultado esperado,
-nunca para localizar botões ou links, e as mensagens ficam concentradas em
-`cypress/support/config/uiMessages.js`.
+Os seletores seguem uma ordem de prioridade única: `data-qa`, atributos
+funcionais (`id`, `href`, `name`, `action` e `data-product-id`) e, somente
+quando a aplicação externa não oferece alternativa, fallback estrutural
+escopado ao componente. Os contratos ficam centralizados em
+`cypress/support/config/selectors.js` e são consumidos pelos comandos de
+`cypress/support/commands.js`.
+
+Texto visível é usado como resultado esperado, nunca para localizar botões ou
+links. Os poucos fallbacks por classe permanecem declarados no contrato porque
+o Automation Exercise não fornece atributos de teste nesses controles.
 
 ## Pré-requisitos
 
@@ -236,7 +239,7 @@ Recomendações:
 | POST de conta com fixture, regra de negócio e resposta menor que 2 s | `05_api_trello.feature`, `apiSteps.js` e `payload_account.json` | Atendido |
 | Cenário negativo de API | Rejeição de e-mail duplicado em `05_api_trello.feature` | Atendido |
 | POM, DRY e Gherkin declarativo | `page_objects`, `support/assertions`, `support/services`, `support/tasks`, steps enxutos e features | Atendido — interação, validação, regras e preparação de estado possuem responsabilidades separadas |
-| Seletores estáveis e padronizados | `support/commands.js`, Page Objects e `support/config/uiMessages.js` | Atendido — prioridade para `data-qa`, IDs funcionais e atributos semânticos; fallback estrutural fica escopado |
+| Seletores estáveis e padronizados | `support/config/selectors.js`, `support/commands.js` e Page Objects | Atendido — política centralizada; fallbacks externos ficam explícitos e escopados |
 | Execução headless sem `cy.wait()` fixo | scripts do `package.json` e workflow | Atendido |
 | Dados fictícios e tratamento de segredos | fixtures, e-mail dinâmico, `.env.example` e GitHub Secrets | Atendido |
 | XSS e SQL Injection em login e busca | `01_login.feature` e `02_search.feature` | Atendido |

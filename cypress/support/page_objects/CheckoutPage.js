@@ -1,9 +1,12 @@
+const selectors = require('../config/selectors');
+
 class CheckoutPage {
   elements = {
-    botaoCheckout: () => cy.getById('cart_items').find('a.check_out'),
+    botaoCheckout: () => cy.getById('cart_items')
+      .find(selectors.checkout.proceedButton),
     enderecoEntrega: () => cy.getById('address_delivery'),
     resumoPedido: () => cy.getById('cart_info'),
-    comentario: () => cy.get('textarea[name="message"]'),
+    comentario: () => cy.getByAttribute('name', 'message'),
     botaoFazerPedido: () => cy.getByHref('/payment'),
     nomeCartao: () => cy.getByQa('name-on-card'),
     numeroCartao: () => cy.getByQa('card-number'),
@@ -12,7 +15,7 @@ class CheckoutPage {
     anoExpiracao: () => cy.getByQa('expiry-year'),
     botaoConfirmarPagamento: () => cy.getByQa('pay-button'),
     pedidoRealizado: () => cy.getByQa('order-placed'),
-    body: () => cy.get('body'),
+    body: () => cy.getByTag(selectors.common.body),
   };
 
   acessarCheckout() {

@@ -1,26 +1,33 @@
+const selectors = require('../config/selectors');
+
 class CartPage {
   elements = {
-    nomeProdutoDetalhes: () => cy.getById('product_id').parent().siblings('h2'),
-    precoProdutoDetalhes: () => cy.getById('quantity').siblings('span').first(),
+    idProdutoDetalhes: () => cy.getById('product_id'),
     campoQuantidade: () => cy.getById('quantity'),
     botaoAdicionarCarrinho: () => cy.getById('quantity').siblings('button[type="button"]'),
     modalProdutoAdicionado: () => cy.getById('cartModal'),
-    linkVisualizarCarrinho: () => cy.getById('cartModal').find('[href="/view_cart"]'),
+    linkVisualizarCarrinho: () => cy.getById('cartModal')
+      .find(selectors.cart.viewCartLink),
     tabelaCarrinho: () => cy.getById('cart_info_table'),
-    produtosCarrinho: () => cy.getById('cart_info_table').find('tbody tr'),
-    nomeProdutoCarrinho: () => cy.getById('cart_info_table').find('.cart_description h4 a'),
-    precoProdutoCarrinho: () => cy.getById('cart_info_table').find('.cart_price p'),
-    quantidadeProdutoCarrinho: () => cy.getById('cart_info_table').find('.cart_quantity button'),
-    totalProdutoCarrinho: () => cy.getById('cart_info_table').find('.cart_total_price'),
-    botaoRemoverProduto: () => cy.getById('cart_info_table').find('.cart_quantity_delete'),
+    produtosCarrinho: () => cy.getById('cart_info_table').find(selectors.cart.rows),
+    nomeProdutoCarrinho: () => cy.getById('cart_info_table')
+      .find(selectors.cart.productName),
+    precoProdutoCarrinho: () => cy.getById('cart_info_table')
+      .find(selectors.cart.price),
+    quantidadeProdutoCarrinho: () => cy.getById('cart_info_table')
+      .find(selectors.cart.quantity),
+    totalProdutoCarrinho: () => cy.getById('cart_info_table')
+      .find(selectors.cart.total),
+    botaoRemoverProduto: () => cy.getById('cart_info_table')
+      .find(selectors.cart.removeButton),
     mensagemCarrinhoVazio: () => cy.getById('empty_cart'),
-    body: () => cy.get('body'),
+    body: () => cy.getByTag(selectors.common.body),
   };
 
   rowSelectors = {
-    preco: '.cart_price p',
-    quantidade: '.cart_quantity button',
-    total: '.cart_total_price',
+    preco: selectors.cart.price,
+    quantidade: selectors.cart.quantity,
+    total: selectors.cart.total,
   };
 
   alterarQuantidade(quantidade) {
@@ -41,6 +48,10 @@ class CartPage {
 
   atualizarPaginaCarrinho() {
     cy.reload();
+  }
+
+  consultarResumoValores() {
+    this.elements.tabelaCarrinho().scrollIntoView();
   }
 }
 

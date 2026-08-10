@@ -1,7 +1,9 @@
+const selectors = require('../config/selectors');
+
 class HomePage {
   elements = {
-    body: () => cy.get('body'),
-    logo: () => cy.getByHref('/').find('img[alt="Website for automation practice"]'),
+    body: () => cy.getByTag(selectors.common.body),
+    logo: () => cy.getByHref('/').find(selectors.home.logo),
   };
 }
 

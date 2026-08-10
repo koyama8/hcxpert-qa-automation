@@ -6,7 +6,7 @@ const cartAssertions = require('../assertions/CartAssertions');
 class CartContext {
   prepararPaginaDetalhesProduto() {
     navigationContext.abrirDetalhesProduto(produtos.principal.id);
-    cartAssertions.validarPaginaDetalhesProduto();
+    cartAssertions.validarPaginaDetalhesProduto(produtos.principal.id);
   }
 
   prepararComUmProduto() {
@@ -15,7 +15,7 @@ class CartContext {
 
   prepararComQuantidade(quantidade, { guardarEstado = false } = {}) {
     navigationContext.abrirDetalhesProduto(produtos.principal.id);
-    cartAssertions.validarPaginaDetalhesProduto();
+    cartAssertions.validarPaginaDetalhesProduto(produtos.principal.id);
 
     if (quantidade !== produtos.quantidades.padrao) {
       cartPage.alterarQuantidade(quantidade);
