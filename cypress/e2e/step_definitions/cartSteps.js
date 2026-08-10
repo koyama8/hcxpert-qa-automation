@@ -5,11 +5,15 @@ const {
 } = require('@badeball/cypress-cucumber-preprocessor');
 
 const cartPage = require('../../support/page_objects/CartPage');
+const cartContext = require('../../support/tasks/CartContext');
+const produtos = require('../../fixtures/products.json');
+const cartAssertions = require('../../support/assertions/CartAssertions');
 
-const quantidadeAlterada = 3;
+const { padrao: quantidadePadrao, alterada: quantidadeAlterada } =
+  produtos.quantidades;
 
 Given('que o usuário está na página de detalhes de um produto', () => {
-  cartPage.acessarDetalhesProduto();
+  cartContext.prepararPaginaDetalhesProduto();
 });
 
 When('o usuário adicionar o produto ao carrinho', () => {
@@ -21,7 +25,7 @@ When('acessar a página do carrinho', () => {
 });
 
 Then('o produto deverá ser apresentado com preço, quantidade e valor total', () => {
-  cartPage.validarProdutoNoCarrinho();
+  cartAssertions.validarProdutoNoCarrinho();
 });
 
 When('o usuário alterar a quantidade padrão do produto', () => {
@@ -34,13 +38,11 @@ When('adicionar o produto ao carrinho', () => {
 });
 
 Then('a quantidade informada deverá ser apresentada e o total deverá corresponder ao preço multiplicado pela quantidade', () => {
-  cartPage.validarQuantidadeETotal(quantidadeAlterada);
+  cartAssertions.validarQuantidadeETotal(quantidadeAlterada);
 });
 
 Given('que o usuário possui somente um produto no carrinho', () => {
-  cartPage.acessarDetalhesProduto();
-  cartPage.adicionarProdutoAoCarrinho();
-  cartPage.acessarCarrinhoPeloModal();
+  cartContext.prepararComUmProduto();
 });
 
 When('o usuário remover o produto', () => {
@@ -48,19 +50,17 @@ When('o usuário remover o produto', () => {
 });
 
 When('permanecer na página do carrinho', () => {
-  cartPage.validarPaginaCarrinho();
+  cartAssertions.validarPaginaCarrinho();
 });
 
 Then('o carrinho deverá ficar vazio e uma mensagem informativa deverá ser apresentada', () => {
-  cartPage.validarCarrinhoVazio();
+  cartAssertions.validarCarrinhoVazio();
 });
 
 Given('que o usuário possui um produto com quantidade alterada no carrinho', () => {
-  cartPage.acessarDetalhesProduto();
-  cartPage.alterarQuantidade(quantidadeAlterada);
-  cartPage.adicionarProdutoAoCarrinho();
-  cartPage.acessarCarrinhoPeloModal();
-  cartPage.guardarDadosDoCarrinho();
+  cartContext.prepararComQuantidade(quantidadeAlterada, {
+    guardarEstado: true,
+  });
 });
 
 When('o usuário atualizar a página do carrinho', () => {
@@ -68,27 +68,25 @@ When('o usuário atualizar a página do carrinho', () => {
 });
 
 When('consultar novamente os dados do produto', () => {
-  cartPage.validarProdutoNoCarrinho();
+  cartAssertions.validarProdutoNoCarrinho();
 });
 
 Then('a quantidade e o valor total deverão permanecer inalterados', () => {
-  cartPage.validarPersistenciaDosDados();
+  cartAssertions.validarPersistenciaDosDados();
 });
 
 Given('que o usuário possui produtos no carrinho', () => {
-  cartPage.acessarDetalhesProduto();
-  cartPage.adicionarProdutoAoCarrinho();
-  cartPage.acessarCarrinhoPeloModal();
+  cartContext.prepararComUmProduto();
 });
 
 When('o usuário consultar o resumo dos valores', () => {
-  cartPage.validarProdutoNoCarrinho();
+  cartAssertions.validarProdutoNoCarrinho();
 });
 
 When('conferir o preço, a quantidade e o valor total', () => {
-  cartPage.validarQuantidadeETotal(1);
+  cartAssertions.validarQuantidadeETotal(quantidadePadrao);
 });
 
 Then('o total deverá corresponder aos itens adicionados sem inclusão de impostos ou frete não identificados', () => {
-  cartPage.validarValoresSemTaxasOuFreteNaoIdentificados();
+  cartAssertions.validarValoresSemTaxasOuFreteNaoIdentificados();
 });

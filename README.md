@@ -25,7 +25,12 @@ A suíte possui **23 cenários BDD** distribuídos entre:
 - Node.js 22.23.2 e JavaScript;
 - Cypress 15.20.0;
 - Cucumber/Gherkin com `@badeball/cypress-cucumber-preprocessor`;
-- Page Object Model em `cypress/support/page_objects`;
+- Page Objects restritos a elementos e ações de interface em `cypress/support/page_objects`;
+- validações isoladas em `cypress/support/assertions` e regras de cálculo em `cypress/support/services`;
+- contextos reutilizáveis em `cypress/support/tasks`, responsáveis pela preparação dos estados iniciais;
+- configuração centralizada de endpoints e rotas em `cypress/support/config`;
+- massas de produtos, checkout, API e segurança isoladas em fixtures;
+- fábrica reutilizável para geração de usuários em `cypress/support/data`;
 - AJV e JSON Schema para validação de contrato;
 - k6 para carga e thresholds de API;
 - Lighthouse para FCP, LCP e score de performance;
@@ -36,13 +41,28 @@ cypress/
 ├── e2e/features/          # Features declarativas em Gherkin
 ├── e2e/step_definitions/  # Implementação dos passos
 ├── fixtures/              # Massa fictícia e schemas
-├── support/page_objects/  # Page Objects
+├── support/config/        # URLs e configurações centralizadas
+├── support/data/          # Fábricas de dados dinâmicos reutilizáveis
+├── support/assertions/    # Validações de estado e resultados esperados
+├── support/page_objects/  # Elementos e ações de interface
+├── support/services/      # Regras e cálculos independentes da interface
+├── support/tasks/         # Contextos e preparação reutilizável dos cenários
 └── evidencias/            # Relatório Cucumber e evidências
 performance/               # Scripts e resultados de k6/Lighthouse
 scripts/                   # Geração dos relatórios
 security/                  # Configuração opcional do ZAP Baseline
 .github/workflows/         # Pipeline de CI/CD
 ```
+
+### Estratégia de seletores
+
+Os seletores seguem uma ordem de prioridade única: `data-qa`, IDs funcionais,
+atributos semânticos (`href`, `name` e `action`) e, somente quando a aplicação
+externa não oferece alternativa, seletores estruturais escopados ao componente.
+Os comandos `getByQa`, `getById` e `getByHref` ficam centralizados em
+`cypress/support/commands.js`. Texto visível é usado como resultado esperado,
+nunca para localizar botões ou links, e as mensagens ficam concentradas em
+`cypress/support/config/uiMessages.js`.
 
 ## Pré-requisitos
 
@@ -215,7 +235,8 @@ Recomendações:
 | GET Trello com status, log e JSON Schema | `05_api_trello.feature`, `apiSteps.js` e `trelloActionSchema.json` | Atendido |
 | POST de conta com fixture, regra de negócio e resposta menor que 2 s | `05_api_trello.feature`, `apiSteps.js` e `payload_account.json` | Atendido |
 | Cenário negativo de API | Rejeição de e-mail duplicado em `05_api_trello.feature` | Atendido |
-| POM, DRY e Gherkin declarativo | `page_objects`, steps reutilizáveis e features | Atendido |
+| POM, DRY e Gherkin declarativo | `page_objects`, `support/assertions`, `support/services`, `support/tasks`, steps enxutos e features | Atendido — interação, validação, regras e preparação de estado possuem responsabilidades separadas |
+| Seletores estáveis e padronizados | `support/commands.js`, Page Objects e `support/config/uiMessages.js` | Atendido — prioridade para `data-qa`, IDs funcionais e atributos semânticos; fallback estrutural fica escopado |
 | Execução headless sem `cy.wait()` fixo | scripts do `package.json` e workflow | Atendido |
 | Dados fictícios e tratamento de segredos | fixtures, e-mail dinâmico, `.env.example` e GitHub Secrets | Atendido |
 | XSS e SQL Injection em login e busca | `01_login.feature` e `02_search.feature` | Atendido |

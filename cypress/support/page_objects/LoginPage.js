@@ -1,51 +1,22 @@
 class LoginPage {
   elements = {
-    emailInput: () => cy.get('[data-qa="login-email"]'),
-    passwordInput: () => cy.get('[data-qa="login-password"]'),
-    loginButton: () => cy.get('[data-qa="login-button"]'),
-    loginError: () => cy.contains('p', 'Your email or password is incorrect!'),
-    loggedUser: () => cy.contains('a', 'Logged in as'),
+    emailInput: () => cy.getByQa('login-email'),
+    passwordInput: () => cy.getByQa('login-password'),
+    loginButton: () => cy.getByQa('login-button'),
+    loginError: () => cy.get('form[action="/login"] p'),
+    logoutLink: () => cy.getByHref('/logout'),
   };
 
-  validarPaginaCarregada() {
-    this.elements.emailInput().should('be.visible');
-    this.elements.passwordInput().should('be.visible');
-    this.elements.loginButton().should('be.visible');
-  }
-
   preencherEmail(email) {
-    this.elements.emailInput()
-      .should('be.visible')
-      .clear()
-      .type(email);
+    this.elements.emailInput().clear().type(email);
   }
 
   preencherSenha(senha) {
-    this.elements.passwordInput()
-      .should('be.visible')
-      .clear()
-      .type(senha, { log: false });
+    this.elements.passwordInput().clear().type(senha, { log: false });
   }
 
   solicitarLogin() {
-    this.elements.loginButton()
-      .should('be.visible')
-      .click();
-  }
-
-  validarUsuarioAutenticado() {
-    this.elements.loggedUser()
-      .should('be.visible');
-  }
-
-  validarMensagemCredenciaisInvalidas() {
-    this.elements.loginError()
-      .should('be.visible');
-  }
-
-  validarUsuarioNaoAutenticado() {
-  this.elements.loggedUser()
-    .should('not.exist');
+    this.elements.loginButton().click();
   }
 }
 

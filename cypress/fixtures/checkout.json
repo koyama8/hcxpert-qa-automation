@@ -1,0 +1,11 @@
+{
+  "comentarioPedido": "Pedido realizado por automacao de teste.",
+  "pagamentoValido": {
+    "nome": "Teste QA",
+    "numero": "4111111111111111",
+    "cvc": "123",
+    "mes": "12",
+    "ano": "2030"
+  },
+  "pagamentoIncompleto": { "nome": "Teste QA" }
+}

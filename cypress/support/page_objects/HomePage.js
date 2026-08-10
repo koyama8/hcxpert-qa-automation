@@ -1,18 +1,8 @@
 class HomePage {
-  routes = {
-    autenticacao: '/login',
-    produtos: '/products',
+  elements = {
+    body: () => cy.get('body'),
+    logo: () => cy.getByHref('/').find('img[alt="Website for automation practice"]'),
   };
-
-  abrirPaginaAutenticacao() {
-    cy.visit(this.routes.autenticacao);
-    cy.url().should('include', '/login');
-  }
-
-  abrirPaginaProdutos() {
-    cy.visit(this.routes.produtos);
-    cy.url().should('include', '/products');
-  }
 }
 
 module.exports = new HomePage();

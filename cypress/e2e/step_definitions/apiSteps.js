@@ -6,6 +6,10 @@ const {
 
 const Ajv = require('ajv')
 const trelloActionSchema = require('../../fixtures/schemas/trelloActionSchema.json')
+const endpoints = require('../../support/config/endpoints')
+const apiContext = require('../../support/tasks/ApiContext')
+const apiTestData = require('../../fixtures/api_test_data.json')
+const userFactory = require('../../support/data/UserFactory')
 
 const ajv = new Ajv({ allErrors: true })
 const validarContratoTrello = ajv.compile(trelloActionSchema)
@@ -14,24 +18,21 @@ let respostaApi
 let respostaCriacaoConta
 let primeiraRespostaDuplicidade
 let segundaRespostaDuplicidade
-let endpointApi
-let endpointCriacaoConta
-
 const obterCorpoResposta = (response) =>
   typeof response.body === 'string' ? JSON.parse(response.body) : response.body
 
-Given('que o endpoint de criação de conta está disponível', () => {
-  endpointCriacaoConta = 'https://www.automationexercise.com/api/createAccount'
+Given('que o endpoint de criação de conta está configurado', () => {
+  apiContext.validarEndpointConfigurado(endpoints.createAccount, 'criação de conta')
 })
 
-Given('que o endpoint de ações do Trello está disponível', () => {
-  endpointApi = 'https://api.trello.com/1/actions'
+Given('que o endpoint de ações do Trello está configurado', () => {
+  apiContext.validarEndpointConfigurado(endpoints.trelloActions, 'ações do Trello')
 })
 
 When('o usuário consultar a ação {string}', (idAcao) => {
   cy.api({
     method: 'GET',
-    url: `${endpointApi}/${idAcao}`,
+    url: `${endpoints.trelloActions}/${idAcao}`,
     failOnStatusCode: false,
   }).then((response) => {
     respostaApi = response
@@ -40,14 +41,15 @@ When('o usuário consultar a ação {string}', (idAcao) => {
 
 When('o usuário enviar os dados válidos para criação da conta', () => {
   cy.fixture('payload_account').then(({ dadosConta }) => {
+    const { prefixoContaValida, dominio } = apiTestData.email
     const dadosContaValida = {
       ...dadosConta,
-      email: `usuario.teste.${Date.now()}@example.com`,
+      email: userFactory.gerarEmailUnico(prefixoContaValida, dominio),
     }
 
     cy.api({
       method: 'POST',
-      url: endpointCriacaoConta,
+      url: endpoints.createAccount,
       form: true,
       body: dadosContaValida,
       failOnStatusCode: false,
@@ -60,14 +62,15 @@ When('o usuário enviar os dados válidos para criação da conta', () => {
 
 When('o usuário tentar criar duas contas com o mesmo e-mail', () => {
   cy.fixture('payload_account').then(({ dadosConta }) => {
+    const { prefixoContaDuplicada, dominio } = apiTestData.email
     const dadosDuplicados = {
       ...dadosConta,
-      email: `usuario.duplicado.${Date.now()}@example.com`,
+      email: userFactory.gerarEmailUnico(prefixoContaDuplicada, dominio),
     }
 
     cy.api({
       method: 'POST',
-      url: endpointCriacaoConta,
+      url: endpoints.createAccount,
       form: true,
       body: dadosDuplicados,
       failOnStatusCode: false,
@@ -76,7 +79,7 @@ When('o usuário tentar criar duas contas com o mesmo e-mail', () => {
 
       cy.api({
         method: 'POST',
-        url: endpointCriacaoConta,
+        url: endpoints.createAccount,
         form: true,
         body: dadosDuplicados,
         failOnStatusCode: false,

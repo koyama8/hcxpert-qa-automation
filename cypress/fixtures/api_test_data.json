@@ -1,0 +1,7 @@
+{
+  "email": {
+    "dominio": "example.com",
+    "prefixoContaValida": "usuario.teste",
+    "prefixoContaDuplicada": "usuario.duplicado"
+  }
+}

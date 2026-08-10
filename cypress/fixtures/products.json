@@ -1,0 +1,8 @@
+{
+  "principal": { "id": 1, "nome": "Blue Top", "termoParcial": "Blue" },
+  "buscas": {
+    "caracteresEspeciais": "@@@",
+    "produtoInexistente": "Produto Inexistente 987654321"
+  },
+  "quantidades": { "padrao": 1, "alterada": 3 }
+}

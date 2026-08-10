@@ -1,0 +1,5 @@
+{
+  "sqlInjection": "' OR '1'='1",
+  "xss": "<script>alert(1)</script>",
+  "conteudoXss": "alert(1)"
+}
