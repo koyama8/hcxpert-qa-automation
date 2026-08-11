@@ -53,7 +53,7 @@ class CartAssertions {
   }
 
   validarCarrinhoVazio() {
-    cartPage.elements.body().then(($body) => {
+    cartPage.elements.body().should(($body) => {
       expect($body.find(cartPage.rowSelectors.produtos)).to.have.length(0);
     });
     cartPage.elements.mensagemCarrinhoVazio()

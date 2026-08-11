@@ -1,23 +1,24 @@
 const checkoutPage = require('../page_objects/CheckoutPage');
+const routes = require('../config/routes');
 
 class NetworkContext {
-  interromperConfirmacaoDoPedido() {
-    cy.window().then((janela) => {
-      Object.defineProperty(janela.navigator, 'onLine', {
-        configurable: true,
-        value: false,
-      });
-      janela.dispatchEvent(new janela.Event('offline'));
-    });
+  aliasConfirmacaoIndisponivel = 'confirmacaoPedidoIndisponivel';
 
-    checkoutPage.elements.botaoConfirmarPagamento().then(($botao) => {
-      const formulario = $botao.closest('form')[0];
-      formulario.addEventListener(
-        'submit',
-        (evento) => evento.preventDefault(),
-        { once: true },
-      );
-    });
+  simularIndisponibilidadeNaConfirmacao() {
+    cy.intercept(
+      {
+        method: 'POST',
+        pathname: routes.payment,
+      },
+      {
+        statusCode: 503,
+        headers: {
+          'content-type': 'text/plain; charset=utf-8',
+          'retry-after': '60',
+        },
+        body: 'Payment service temporarily unavailable',
+      },
+    ).as(this.aliasConfirmacaoIndisponivel);
 
     checkoutPage.confirmarPedido();
   }

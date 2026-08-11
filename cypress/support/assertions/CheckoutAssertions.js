@@ -2,6 +2,7 @@ const checkoutPage = require('../page_objects/CheckoutPage');
 const cartCalculator = require('../services/CartCalculator');
 const routes = require('../config/routes');
 const uiMessages = require('../config/uiMessages');
+const networkContext = require('../tasks/NetworkContext');
 
 class CheckoutAssertions {
   validarPaginaCheckout() {
@@ -99,7 +100,15 @@ class CheckoutAssertions {
     checkoutPage.elements.pedidoRealizado().should('not.exist');
   }
 
-  validarPedidoNaoConfirmado() {
+  validarPedidoNaoConfirmadoPorIndisponibilidade() {
+    cy.wait(`@${networkContext.aliasConfirmacaoIndisponivel}`)
+      .then(({ request, response }) => {
+        expect(request.method, 'método da confirmação').to.equal('POST');
+        expect(response.statusCode, 'status de indisponibilidade').to.equal(503);
+        expect(response.headers, 'orientação de nova tentativa')
+          .to.have.property('retry-after', '60');
+      });
+
     this.validarPermanenciaNaPaginaPagamento();
     checkoutPage.elements.body().should(
       'not.contain.text',

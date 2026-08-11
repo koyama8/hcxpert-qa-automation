@@ -19,8 +19,8 @@ Feature: Checkout e validações
     And tentar confirmar o pedido
     Then o pedido não deverá ser finalizado e o usuário deverá permanecer na página de pagamento
 
-  Scenario: Interromper a confirmação do pedido sob perda de conectividade
+  Scenario: Impedir confirmação sob indisponibilidade do serviço de pagamento
     Given que o usuário está autenticado e está na página de pagamento
     When o usuário informar dados fictícios válidos para o pagamento
-    And a conectividade for interrompida durante a confirmação do pedido
-    Then o pedido não deverá ser confirmado e nenhuma mensagem de sucesso deverá ser apresentada
+    And o serviço de confirmação do pedido estiver indisponível
+    Then a requisição deverá falhar e o pedido não deverá ser confirmado

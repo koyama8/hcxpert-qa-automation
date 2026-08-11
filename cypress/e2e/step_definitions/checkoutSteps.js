@@ -61,11 +61,11 @@ When('o usuário informar dados fictícios válidos para o pagamento', () => {
   checkoutPage.preencherPagamento(checkoutData.pagamentoValido);
 });
 
-When('a conectividade for interrompida durante a confirmação do pedido', () => {
-  networkContext.interromperConfirmacaoDoPedido();
+When('o serviço de confirmação do pedido estiver indisponível', () => {
+  networkContext.simularIndisponibilidadeNaConfirmacao();
 });
 
-Then('o pedido não deverá ser confirmado e nenhuma mensagem de sucesso deverá ser apresentada',() => {
-    checkoutAssertions.validarPedidoNaoConfirmado();
+Then('a requisição deverá falhar e o pedido não deverá ser confirmado',() => {
+    checkoutAssertions.validarPedidoNaoConfirmadoPorIndisponibilidade();
   },
 );
