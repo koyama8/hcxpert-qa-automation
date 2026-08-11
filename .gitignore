@@ -35,6 +35,8 @@ security/reports/
 security/*.html
 security/*.json
 security/*.xml
+security/zap-report.md
+security/zap.yaml
 
 # Logs e arquivos temporarios
 *.log

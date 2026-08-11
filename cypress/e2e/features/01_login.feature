@@ -22,15 +22,3 @@ Feature: Autenticação e sessão
     When o usuário informar um e-mail não cadastrado e uma senha
     And solicitar a autenticação
     Then uma mensagem de credenciais inválidas deverá ser exibida sem autenticar o usuário
-
-  Scenario: Tentativa de SQL Injection no campo de autenticação
-    Given que o usuário está na página de autenticação
-    When o usuário inserir uma expressão de SQL Injection no campo de senha
-    And solicitar a autenticação
-    Then o sistema deverá rejeitar a tentativa sem autenticar o usuário
-
-  Scenario: Tentativa de XSS no campo de autenticação
-    Given que o usuário está na página de autenticação
-    When o usuário inserir um script malicioso no campo de senha
-    And solicitar a autenticação
-    Then o sistema deverá impedir a execução do script sem autenticar o usuário

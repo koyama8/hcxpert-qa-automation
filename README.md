@@ -13,11 +13,12 @@ Projeto desenvolvido para o desafio técnico de Engenharia de Qualidade da HCXpe
 
 A suíte possui **23 cenários BDD** distribuídos entre:
 
-- autenticação: login válido, senha incorreta, usuário inexistente e entradas maliciosas;
-- busca: nome exato, parcial, caracteres especiais, busca vazia, produto inexistente e entradas maliciosas;
+- autenticação: login válido, senha incorreta e usuário inexistente;
+- busca: nome exato, parcial, caracteres especiais, busca vazia e produto inexistente;
 - carrinho: inclusão, quantidade, remoção, persistência e composição do valor;
 - checkout: compra válida, formulário incompleto e perda de conectividade;
 - APIs: consulta GET do Trello, criação POST de conta e rejeição de e-mail duplicado;
+- segurança: SQL Injection e XSS em autenticação e busca;
 - performance: carga de API com k6 e auditoria Web com Lighthouse.
 
 ## Tecnologias e arquitetura
@@ -50,7 +51,7 @@ cypress/
 └── evidencias/            # Relatório Cucumber e evidências
 performance/               # Scripts e resultados de k6/Lighthouse
 scripts/                   # Geração dos relatórios
-security/                  # Configuração opcional do ZAP Baseline
+security/                  # Política e evidências do ZAP Baseline
 .github/workflows/         # Pipeline de CI/CD
 ```
 
@@ -75,7 +76,7 @@ o Automation Exercise não fornece atributos de teste nesses controles.
 - k6 2 ou superior para executar o teste de carga localmente;
 - conta exclusiva de testes no Automation Exercise para login e checkout.
 
-O Docker é necessário apenas para a execução opcional do ZAP Baseline descrita em `security/README.md`.
+O Docker é necessário para executar localmente o ZAP Baseline descrito em `security/README.md`. No CI, o job DAST utiliza a imagem oficial do ZAP.
 
 ## Instalação e configuração local
 
@@ -152,7 +153,7 @@ Os cenários de criação de conta validam:
 
 ## Performance
 
-Os testes não funcionais são mantidos em scripts próprios de k6, Lighthouse e ZAP. Eles não são representados por uma feature Gherkin vazia, evitando contabilizar como cenário automatizado um artefato sem implementação.
+Os testes de performance são mantidos em scripts próprios de k6 e Lighthouse. A feature `06_security_perf.feature` possui cenários funcionais reais de SQL Injection e XSS; o DAST permanece automatizado pelo ZAP no pipeline.
 
 ### Carga de API com k6
 
@@ -188,10 +189,11 @@ O workflow `.github/workflows/main.yml` realiza:
 3. execução headless da suíte Web/API em Ubuntu 24.04;
 4. geração do relatório Cucumber;
 5. execução de k6 e Lighthouse em push para `main`;
-6. upload de HTML, JSON, screenshots e vídeos como artefatos;
-7. publicação dos relatórios no GitHub Pages.
+6. execução do OWASP ZAP Baseline passivo com gate para regras `FAIL`;
+7. upload de HTML, JSON, screenshots, vídeos e relatórios de segurança como artefatos;
+8. publicação dos relatórios no GitHub Pages.
 
-Para consultar uma execução, abra **Actions → Testes E2E - Cypress**, selecione o workflow e baixe `evidencias-e2e`, `evidencias-performance` ou `evidencias-lighthouse`. Os botões no início deste README abrem os relatórios publicados.
+Para consultar uma execução, abra **Actions → Testes E2E - Cypress**, selecione o workflow e baixe `evidencias-e2e`, `evidencias-performance`, `evidencias-lighthouse` ou `evidencias-seguranca-zap`. Os botões no início deste README abrem os relatórios publicados.
 
 ## Segurança e privacidade
 
@@ -199,8 +201,8 @@ Para consultar uma execução, abra **Actions → Testes E2E - Cypress**, seleci
 - o pipeline recebe credenciais por GitHub Secrets;
 - a auditoria das dependências de produção não possui vulnerabilidades conhecidas; riscos transitivos de desenvolvimento estão registrados em `docs/security/dependency-risk-register.md`;
 - fixtures usam dados fictícios e e-mails gerados dinamicamente;
-- os cenários tratam XSS e SQL Injection como entradas não confiáveis em login e busca;
-- existe configuração documentada para ZAP Baseline passivo, mas o scan DAST não faz parte do pipeline atual.
+- a feature `06_security_perf.feature` trata XSS e SQL Injection como entradas não confiáveis em login e busca;
+- o pipeline executa ZAP Baseline passivo, publica as evidências e bloqueia regras classificadas como `FAIL`.
 
 Nenhuma varredura ativa deve ser executada contra um ambiente sem autorização explícita do responsável.
 
@@ -242,8 +244,8 @@ Recomendações:
 | Seletores estáveis e padronizados | `support/config/selectors.js`, `support/commands.js` e Page Objects | Atendido — política centralizada; fallbacks externos ficam explícitos e escopados |
 | Execução headless sem `cy.wait()` fixo | scripts do `package.json` e workflow | Atendido |
 | Dados fictícios e tratamento de segredos | fixtures, e-mail dinâmico, `.env.example` e GitHub Secrets | Atendido |
-| XSS e SQL Injection em login e busca | `01_login.feature` e `02_search.feature` | Atendido |
-| DAST básico | configuração e instruções do ZAP Baseline em `security/` | Parcialmente atendido — fora do pipeline |
+| XSS e SQL Injection em login e busca | `06_security_perf.feature`, steps reutilizados e `security_payloads.json` | Atendido — cobertura funcional de entradas maliciosas |
+| DAST básico | job `seguranca-dast`, configuração e relatórios do ZAP Baseline | Atendido — baseline passivo automatizado com gate por severidade |
 | k6 com 10 VUs/30 s e p95 menor que 800 ms | `performance/k6_api_test.js` e relatório publicado | Atendido |
 | Lighthouse com FCP e LCP | `scripts/run-lighthouse.js` e relatório publicado | Atendido |
 | Pipeline headless, relatórios e artefatos | `.github/workflows/main.yml` | Atendido |
@@ -254,6 +256,6 @@ Recomendações:
 ## Limitações conhecidas
 
 - O projeto depende de ambientes públicos sem controle de disponibilidade ou massa de dados.
-- O ZAP Baseline está documentado, mas não é executado automaticamente no CI.
+- O ZAP Baseline avalia um ambiente público externo; riscos que o projeto não pode corrigir permanecem documentados como `WARN`.
 - A suíte funcional não possui imagem Docker própria; a execução reproduzível ocorre localmente com Node.js 22.23.2 ou no GitHub Actions em Ubuntu 24.04.
 - Alertas do Lighthouse podem variar conforme rede, anúncios e carga do servidor externo.

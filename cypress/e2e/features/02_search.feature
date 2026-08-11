@@ -34,15 +34,3 @@ Feature: Busca de produtos
     When o usuário informar o nome de um produto inexistente
     And solicitar a busca
     Then nenhum produto deverá ser apresentado e a página deverá permanecer disponível
-
-  Scenario: Tratar SQL Injection como texto na busca
-    Given que o usuário está na página de produtos
-    When o usuário inserir uma expressão de SQL Injection na busca
-    And solicitar a busca
-    Then a entrada SQL deverá ser tratada como texto sem expor erros técnicos
-
-  Scenario: Impedir execução de XSS na busca
-    Given que o usuário está na página de produtos
-    When o usuário inserir um script malicioso na busca
-    And solicitar a busca
-    Then o script não deverá ser executado e a entrada deverá ser tratada como texto

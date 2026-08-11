@@ -45,6 +45,7 @@ When('o usuário enviar os dados válidos para criação da conta', () => {
     const dadosContaValida = {
       ...dadosConta,
       email: userFactory.gerarEmailUnico(prefixoContaValida, dominio),
+      password: userFactory.gerarSenhaTemporaria(),
     }
 
     cy.api({
@@ -55,7 +56,6 @@ When('o usuário enviar os dados válidos para criação da conta', () => {
       failOnStatusCode: false,
     }).then((response) => {
       respostaCriacaoConta = response
-      cy.log(`E-mail criado: ${dadosContaValida.email}`)
     })
   })
 })
@@ -66,6 +66,7 @@ When('o usuário tentar criar duas contas com o mesmo e-mail', () => {
     const dadosDuplicados = {
       ...dadosConta,
       email: userFactory.gerarEmailUnico(prefixoContaDuplicada, dominio),
+      password: userFactory.gerarSenhaTemporaria(),
     }
 
     cy.api({

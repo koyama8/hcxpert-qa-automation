@@ -6,9 +6,10 @@
     "test": "npm run test:all",
     "cy:open": "cypress open",
     "cy:verify": "cypress verify",
-    "test:all": "cypress run --browser electron --spec \"cypress/e2e/features/01_login.feature,cypress/e2e/features/02_search.feature,cypress/e2e/features/03_cart.feature,cypress/e2e/features/04_checkout.feature,cypress/e2e/features/05_api_trello.feature\"",
-    "test:e2e": "cypress run --browser electron --spec \"cypress/e2e/features/01_login.feature,cypress/e2e/features/02_search.feature,cypress/e2e/features/03_cart.feature,cypress/e2e/features/04_checkout.feature\"",
+    "test:all": "cypress run --browser electron --spec \"cypress/e2e/features/01_login.feature,cypress/e2e/features/02_search.feature,cypress/e2e/features/03_cart.feature,cypress/e2e/features/04_checkout.feature,cypress/e2e/features/05_api_trello.feature,cypress/e2e/features/06_security_perf.feature\"",
+    "test:e2e": "cypress run --browser electron --spec \"cypress/e2e/features/01_login.feature,cypress/e2e/features/02_search.feature,cypress/e2e/features/03_cart.feature,cypress/e2e/features/04_checkout.feature,cypress/e2e/features/06_security_perf.feature\"",
     "test:api": "cypress run --browser electron --spec \"cypress/e2e/features/05_api_trello.feature\"",
+    "test:security": "cypress run --browser electron --spec \"cypress/e2e/features/06_security_perf.feature\"",
     "test:perf": "k6 run performance/k6_api_test.js",
     "test:lighthouse": "node scripts/run-lighthouse.js",
     "report": "node scripts/generate-report.js"
