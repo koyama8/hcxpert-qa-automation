@@ -160,7 +160,8 @@ jobs:
 
   seguranca-dast:
     name: Seguranca DAST - OWASP ZAP Baseline
-    if: github.event_name != 'pull_request'
+    needs: testes-e2e
+    if: always() && github.event_name != 'pull_request'
     runs-on: ubuntu-24.04
     timeout-minutes: 10
 
