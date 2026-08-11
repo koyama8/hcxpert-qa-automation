@@ -3,6 +3,7 @@ const checkoutPage = require('../page_objects/CheckoutPage');
 const loginPage = require('../page_objects/LoginPage');
 const navigationContext = require('./NavigationContext');
 const checkoutData = require('../../fixtures/checkout.json');
+const produtos = require('../../fixtures/products.json');
 const loginAssertions = require('../assertions/LoginAssertions');
 const checkoutAssertions = require('../assertions/CheckoutAssertions');
 
@@ -19,13 +20,17 @@ class CheckoutContext {
 
   prepararCarrinhoAutenticado() {
     this.autenticarUsuario();
+    cartContext.prepararCarrinhoVazio();
     cartContext.prepararComUmProduto();
   }
 
   prepararPaginaPagamento() {
     this.prepararCarrinhoAutenticado();
     checkoutPage.acessarCheckout();
-    checkoutAssertions.validarPaginaCheckout();
+    checkoutAssertions.validarEnderecoEResumo(
+      produtos.principal,
+      produtos.quantidades.padrao,
+    );
     checkoutPage.prosseguirParaPagamento(checkoutData.comentarioPedido);
     checkoutAssertions.validarPaginaPagamento();
   }

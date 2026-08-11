@@ -10,6 +10,15 @@ class LoginAssertions {
 
   validarUsuarioAutenticado() {
     loginPage.elements.logoutLink().should('be.visible');
+    loginPage.elements.usuarioAutenticado()
+      .should('be.visible')
+      .and('contain.text', uiMessages.login.usuarioAutenticado);
+    loginPage.elements.nomeUsuarioAutenticado()
+      .should('be.visible')
+      .invoke('text')
+      .then((nomeUsuario) => {
+        expect(nomeUsuario.trim(), 'nome do usuário autenticado').not.to.be.empty;
+      });
   }
 
   validarCredenciaisInvalidas() {

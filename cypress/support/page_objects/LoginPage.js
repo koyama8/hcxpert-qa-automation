@@ -7,6 +7,13 @@ class LoginPage {
     loginButton: () => cy.getByQa('login-button'),
     loginError: () => cy.getByAttribute('action', '/login')
       .find(selectors.login.errorMessage),
+    usuarioAutenticado: () => cy.getByTag('i')
+      .filter(selectors.login.loggedInUserIcon)
+      .parent(),
+    nomeUsuarioAutenticado: () => cy.getByTag('i')
+      .filter(selectors.login.loggedInUserIcon)
+      .parent()
+      .find('b'),
     logoutLink: () => cy.getByHref('/logout'),
   };
 

@@ -7,6 +7,7 @@ const {
 const checkoutPage = require('../../support/page_objects/CheckoutPage');
 const checkoutContext = require('../../support/tasks/CheckoutContext');
 const checkoutData = require('../../fixtures/checkout.json');
+const produtos = require('../../fixtures/products.json');
 const checkoutAssertions = require('../../support/assertions/CheckoutAssertions');
 const networkContext = require('../../support/tasks/NetworkContext');
 
@@ -14,8 +15,18 @@ Given('que o usuário está autenticado e possui um produto no carrinho', () => 
   checkoutContext.prepararCarrinhoAutenticado();
 });
 
-When('o usuário revisar o endereço e prosseguir para o pagamento', () => {
+When('o usuário acessar a página de checkout', () => {
   checkoutPage.acessarCheckout();
+});
+
+Then('o endereço e o resumo do pedido deverão corresponder à compra', () => {
+  checkoutAssertions.validarEnderecoEResumo(
+    produtos.principal,
+    produtos.quantidades.padrao,
+  );
+});
+
+When('o usuário prosseguir para o pagamento', () => {
   checkoutPage.prosseguirParaPagamento(checkoutData.comentarioPedido);
 });
 

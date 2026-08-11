@@ -9,7 +9,10 @@ const cartContext = require('../../support/tasks/CartContext');
 const produtos = require('../../fixtures/products.json');
 const cartAssertions = require('../../support/assertions/CartAssertions');
 
-const { alterada: quantidadeAlterada } = produtos.quantidades;
+const {
+  padrao: quantidadePadrao,
+  alterada: quantidadeAlterada,
+} = produtos.quantidades;
 
 Given('que o usuário está na página de detalhes de um produto', () => {
   cartContext.prepararPaginaDetalhesProduto();
@@ -24,7 +27,10 @@ When('acessar a página do carrinho', () => {
 });
 
 Then('o produto deverá ser apresentado com preço, quantidade e valor total', () => {
-  cartAssertions.validarProdutoNoCarrinho();
+  cartAssertions.validarProdutoNoCarrinho(
+    produtos.principal,
+    quantidadePadrao,
+  );
 });
 
 When('o usuário alterar a quantidade padrão do produto', () => {
@@ -36,7 +42,10 @@ When('adicionar o produto ao carrinho', () => {
 });
 
 Then('a quantidade informada deverá ser apresentada e o total deverá corresponder ao preço multiplicado pela quantidade', () => {
-  cartAssertions.validarQuantidadeETotal(quantidadeAlterada);
+  cartAssertions.validarProdutoNoCarrinho(
+    produtos.principal,
+    quantidadeAlterada,
+  );
 });
 
 Given('que o usuário possui somente um produto no carrinho', () => {
@@ -62,7 +71,7 @@ When('o usuário atualizar a página do carrinho', () => {
 });
 
 Then('a quantidade e o valor total deverão permanecer inalterados', () => {
-  cartAssertions.validarPersistenciaDosDados();
+  cartAssertions.validarPersistenciaDosDados(quantidadeAlterada);
 });
 
 Given('que o usuário possui produtos no carrinho', () => {

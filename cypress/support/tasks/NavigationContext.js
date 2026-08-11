@@ -16,6 +16,10 @@ class NavigationContext {
   abrirDetalhesProduto(productId) {
     cy.visit(routes.productDetails(productId));
   }
+
+  abrirCarrinho() {
+    cy.visit(routes.cart);
+  }
 }
 
 module.exports = new NavigationContext();

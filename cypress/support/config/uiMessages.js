@@ -1,6 +1,7 @@
 module.exports = {
   login: {
     credenciaisInvalidas: 'Your email or password is incorrect!',
+    usuarioAutenticado: 'Logged in as',
   },
   products: {
     listaCompleta: 'All Products',
@@ -12,6 +13,7 @@ module.exports = {
     labelsTaxasOuFrete: ['Tax', 'Shipping', 'Freight', 'Imposto', 'Frete'],
   },
   checkout: {
+    tituloPedidoRealizado: 'Order Placed!',
     pedidoConfirmado: 'Congratulations! Your order has been confirmed!',
   },
 };

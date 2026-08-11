@@ -5,7 +5,25 @@ class CheckoutPage {
     botaoCheckout: () => cy.getById('cart_items')
       .find(selectors.checkout.proceedButton),
     enderecoEntrega: () => cy.getById('address_delivery'),
+    detalhesEnderecoEntrega: () => cy.getById('address_delivery')
+      .find(selectors.checkout.addressDetails),
+    enderecoCobranca: () => cy.getById('address_invoice'),
+    detalhesEnderecoCobranca: () => cy.getById('address_invoice')
+      .find(selectors.checkout.addressDetails),
     resumoPedido: () => cy.getById('cart_info'),
+    produtosResumo: () => cy.getById('cart_info').find(selectors.cart.rows),
+    nomeProdutoResumo: () => cy.getById('cart_info')
+      .find(selectors.cart.rows)
+      .find(selectors.cart.productName),
+    precoProdutoResumo: () => cy.getById('cart_info')
+      .find(selectors.cart.rows)
+      .find(selectors.cart.price),
+    quantidadeProdutoResumo: () => cy.getById('cart_info')
+      .find(selectors.cart.rows)
+      .find(selectors.cart.quantity),
+    totalProdutoResumo: () => cy.getById('cart_info')
+      .find(selectors.cart.rows)
+      .find(selectors.cart.total),
     comentario: () => cy.getByAttribute('name', 'message'),
     botaoFazerPedido: () => cy.getByHref('/payment'),
     nomeCartao: () => cy.getByQa('name-on-card'),
@@ -14,6 +32,9 @@ class CheckoutPage {
     mesExpiracao: () => cy.getByQa('expiry-month'),
     anoExpiracao: () => cy.getByQa('expiry-year'),
     botaoConfirmarPagamento: () => cy.getByQa('pay-button'),
+    camposPagamentoInvalidos: () => cy.getByQa('pay-button')
+      .closest('form')
+      .find(':invalid'),
     pedidoRealizado: () => cy.getByQa('order-placed'),
     body: () => cy.getByTag(selectors.common.body),
   };

@@ -25,6 +25,7 @@ class CartPage {
   };
 
   rowSelectors = {
+    produtos: selectors.cart.rows,
     preco: selectors.cart.price,
     quantidade: selectors.cart.quantity,
     total: selectors.cart.total,
@@ -44,6 +45,19 @@ class CartPage {
 
   removerProduto() {
     this.elements.botaoRemoverProduto().first().click();
+  }
+
+  removerTodosProdutos() {
+    this.elements.body().then(($body) => {
+      const $botaoRemover = $body.find(selectors.cart.removeButton).first();
+
+      if (!$botaoRemover.length) return;
+
+      const productId = $botaoRemover.attr('data-product-id');
+      cy.wrap($botaoRemover).click();
+      cy.getById(`product-${productId}`).should('not.exist');
+      this.removerTodosProdutos();
+    });
   }
 
   atualizarPaginaCarrinho() {

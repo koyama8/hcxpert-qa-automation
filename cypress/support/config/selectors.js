@@ -9,6 +9,7 @@ module.exports = {
   login: {
     form: 'form[action="/login"]',
     errorMessage: 'p',
+    loggedInUserIcon: '.fa-user',
   },
   products: {
     control: 'a[data-product-id]',
@@ -24,7 +25,7 @@ module.exports = {
     removeButton: '[data-product-id].cart_quantity_delete',
   },
   checkout: {
-    
     proceedButton: 'a.check_out',
+    addressDetails: 'li:not(.address_title)',
   },
 };

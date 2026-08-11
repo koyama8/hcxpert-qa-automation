@@ -13,6 +13,12 @@ class CartContext {
     this.prepararComQuantidade(produtos.quantidades.padrao);
   }
 
+  prepararCarrinhoVazio() {
+    navigationContext.abrirCarrinho();
+    cartPage.removerTodosProdutos();
+    cartAssertions.validarCarrinhoVazio();
+  }
+
   prepararComQuantidade(quantidade, { guardarEstado = false } = {}) {
     navigationContext.abrirDetalhesProduto(produtos.principal.id);
     cartAssertions.validarPaginaDetalhesProduto(produtos.principal.id);

@@ -21,13 +21,17 @@ class CartAssertions {
     cartPage.elements.body().should('be.visible');
   }
 
-  validarProdutoNoCarrinho() {
+  validarProdutoNoCarrinho(produtoEsperado, quantidadeEsperada) {
     cartPage.elements.tabelaCarrinho().should('be.visible');
-    cartPage.elements.produtosCarrinho().should('have.length.greaterThan', 0);
-    cartPage.elements.nomeProdutoCarrinho().should('be.visible').and('not.be.empty');
-    cartPage.elements.precoProdutoCarrinho().should('be.visible').and('not.be.empty');
-    cartPage.elements.quantidadeProdutoCarrinho().should('be.visible').and('not.be.empty');
-    cartPage.elements.totalProdutoCarrinho().should('be.visible').and('not.be.empty');
+    cartPage.elements.produtosCarrinho().should('have.length', 1);
+    cartPage.elements.nomeProdutoCarrinho()
+      .should('be.visible')
+      .and('have.attr', 'href', routes.productDetails(produtoEsperado.id))
+      .invoke('text')
+      .then((nomeProduto) => {
+        expect(nomeProduto.trim()).to.equal(produtoEsperado.nome);
+      });
+    this.validarQuantidadeETotal(quantidadeEsperada);
   }
 
   validarQuantidadeInformada(quantidade) {
@@ -49,7 +53,9 @@ class CartAssertions {
   }
 
   validarCarrinhoVazio() {
-    cartPage.elements.produtosCarrinho().should('not.exist');
+    cartPage.elements.body().then(($body) => {
+      expect($body.find(cartPage.rowSelectors.produtos)).to.have.length(0);
+    });
     cartPage.elements.mensagemCarrinhoVazio()
       .should('be.visible')
       .and('contain.text', uiMessages.cart.carrinhoVazio);
@@ -64,26 +70,29 @@ class CartAssertions {
     });
   }
 
-  validarPersistenciaDosDados() {
+  validarPersistenciaDosDados(quantidadeEsperada) {
     cartPage.elements.quantidadeProdutoCarrinho()
       .should('have.text', this.quantidadeAntesDeAtualizar);
     cartPage.elements.totalProdutoCarrinho()
       .should('have.text', this.totalAntesDeAtualizar);
+    this.validarQuantidadeETotal(quantidadeEsperada);
   }
 
   validarValoresSemTaxasOuFreteNaoIdentificados() {
-    cartPage.elements.produtosCarrinho().each(($produto) => {
-      const preco = cartCalculator.converterValorMonetario(
-        $produto.find(cartPage.rowSelectors.preco).text(),
-      );
-      const quantidade = Number(
-        $produto.find(cartPage.rowSelectors.quantidade).text().trim(),
-      );
-      const total = cartCalculator.converterValorMonetario(
-        $produto.find(cartPage.rowSelectors.total).text(),
-      );
-      expect(total).to.equal(cartCalculator.calcularTotal(preco, quantidade));
-    });
+    cartPage.elements.produtosCarrinho()
+      .should('have.length.greaterThan', 0)
+      .each(($produto) => {
+        const preco = cartCalculator.converterValorMonetario(
+          $produto.find(cartPage.rowSelectors.preco).text(),
+        );
+        const quantidade = Number(
+          $produto.find(cartPage.rowSelectors.quantidade).text().trim(),
+        );
+        const total = cartCalculator.converterValorMonetario(
+          $produto.find(cartPage.rowSelectors.total).text(),
+        );
+        expect(total).to.equal(cartCalculator.calcularTotal(preco, quantidade));
+      });
     uiMessages.cart.labelsTaxasOuFrete.forEach((label) => {
       cartPage.elements.tabelaCarrinho().should('not.contain.text', label);
     });

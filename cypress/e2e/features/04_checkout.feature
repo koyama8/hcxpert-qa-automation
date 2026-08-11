@@ -7,7 +7,9 @@ Feature: Checkout e validações
 
   Scenario: Finalizar uma compra com dados válidos
     Given que o usuário está autenticado e possui um produto no carrinho
-    When o usuário revisar o endereço e prosseguir para o pagamento
+    When o usuário acessar a página de checkout
+    Then o endereço e o resumo do pedido deverão corresponder à compra
+    When o usuário prosseguir para o pagamento
     And informar dados fictícios válidos e confirmar o pedido
     Then uma mensagem de pedido realizado com sucesso deverá ser apresentada
 
