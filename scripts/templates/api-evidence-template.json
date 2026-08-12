@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": null,
+  "executionId": null,
+  "environment": {
+    "node": null,
+    "platform": null,
+    "architecture": null
+  },
+  "summary": {
+    "passed": false,
+    "checks": 0,
+    "failures": 0,
+    "warnings": 0
+  },
+  "interactions": []
+}

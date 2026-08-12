@@ -1,0 +1,12 @@
+{
+  "fields": {
+    "project": {
+      "key": "{{XRAY_PROJECT_KEY}}"
+    },
+    "summary": "Execucao automatizada HCXpert - {{EXECUTION_TIMESTAMP}}",
+    "description": "Resultados Cucumber importados de forma automatizada pelo projeto HCXpert.",
+    "issuetype": {
+      "name": "Test Execution"
+    }
+  }
+}

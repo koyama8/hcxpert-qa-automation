@@ -14,7 +14,11 @@
     "test:lighthouse": "node scripts/run-lighthouse.js",
     "report": "node scripts/generate-report.js",
     "lint": "eslint .",
-    "metadata": "node scripts/generate-execution-metadata.js"
+    "metadata": "node scripts/generate-execution-metadata.js",
+    "evidence:api": "node scripts/capture-api-evidencias.mjs",
+    "evidence:api:check": "node scripts/capture-api-evidencias.mjs --dry-run",
+    "xray:upload": "node scripts/upload-xray.mjs",
+    "xray:check": "node scripts/upload-xray.mjs --dry-run"
   },
   "keywords": [],
   "author": "",

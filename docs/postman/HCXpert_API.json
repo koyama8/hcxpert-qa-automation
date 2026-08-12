@@ -2,52 +2,74 @@
   "info": {
     "_postman_id": "88f80995-d60b-4fcb-9ef7-41308ae4e8d8",
     "name": "HCXpert - Testes de API",
-    "description": "Coleção para exploração e validação manual das APIs do desafio técnico HCXpert.",
+    "description": "Colecao para exploracao e validacao manual das APIs do desafio tecnico HCXpert. A conta criada no fluxo Automation Exercise utiliza dados dinamicos e deve ser removida pelo request de cleanup.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
+  "variable": [
+    {
+      "key": "trelloBaseUrl",
+      "value": "https://api.trello.com",
+      "type": "string"
+    },
+    {
+      "key": "automationExerciseBaseUrl",
+      "value": "https://www.automationexercise.com",
+      "type": "string"
+    },
+    {
+      "key": "accountEmail",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "accountPassword",
+      "value": "",
+      "type": "string"
+    }
+  ],
   "item": [
     {
       "name": "Trello",
       "item": [
         {
-          "name": "Consultar ação existente",
+          "name": "Consultar acao existente",
           "event": [
             {
               "listen": "test",
               "script": {
+                "type": "text/javascript",
                 "exec": [
                   "pm.test('Status deve ser 200', () => {",
                   "  pm.response.to.have.status(200);",
                   "});",
                   "",
-                  "pm.test('Resposta deve possuir o nome da lista', () => {",
-                  "  const body = pm.response.json();",
+                  "pm.test('Content-Type deve ser JSON', () => {",
+                  "  pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json');",
+                  "});",
                   "",
-                  "  pm.expect(body).to.have.property('id');",
-                  "  pm.expect(body).to.have.property('data');",
-                  "  pm.expect(body.data).to.have.property('list');",
-                  "  pm.expect(body.data.list).to.have.property('name');",
+                  "pm.test('Resposta deve respeitar o contrato minimo', () => {",
+                  "  const body = pm.response.json();",
+                  "  pm.expect(body.id).to.eql('592f11060f95a3d3d46a987a');",
                   "  pm.expect(body.data.list.name).to.be.a('string').and.not.empty;",
                   "});",
                   "",
                   "console.log('Nome da lista:', pm.response.json().data.list.name);"
-                ],
-                "type": "text/javascript",
-                "packages": {},
-                "requests": {}
+                ]
               }
             }
           ],
           "request": {
             "method": "GET",
-            "header": [],
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
             "url": {
-              "raw": "https://api.trello.com/1/actions/592f11060f95a3d3d46a987a",
-              "protocol": "https",
+              "raw": "{{trelloBaseUrl}}/1/actions/592f11060f95a3d3d46a987a",
               "host": [
-                "api",
-                "trello",
-                "com"
+                "{{trelloBaseUrl}}"
               ],
               "path": [
                 "1",
@@ -55,7 +77,158 @@
                 "592f11060f95a3d3d46a987a"
               ]
             },
-            "description": "Consulta uma ação pública do Trello e valida o status e o campo data.list.name."
+            "description": "Consulta uma acao publica do Trello e valida status, Content-Type, identificador e data.list.name."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Automation Exercise",
+      "description": "Execute Criar conta e, mesmo em caso de falha posterior, execute Remover conta criada para limpar a massa.",
+      "item": [
+        {
+          "name": "Criar conta com dados validos",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const suffix = `${Date.now()}-${pm.variables.replaceIn('{{$randomUUID}}')}`;",
+                  "pm.collectionVariables.set('accountEmail', `hcxpert.postman.${suffix}@example.com`);",
+                  "pm.collectionVariables.set('accountPassword', `Qa@${pm.variables.replaceIn('{{$randomUUID}}')}`);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const body = pm.response.json();",
+                  "",
+                  "pm.test('Transporte deve retornar HTTP 200', () => {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Content-Type deve estar presente', () => {",
+                  "  pm.expect(pm.response.headers.get('Content-Type')).to.be.a('string').and.not.empty;",
+                  "});",
+                  "",
+                  "if (!pm.response.headers.get('Content-Type').includes('application/json')) {",
+                  "  console.warn('API retornou JSON com Content-Type divergente:', pm.response.headers.get('Content-Type'));",
+                  "}",
+                  "",
+                  "pm.test('Regra de negocio deve confirmar a criacao', () => {",
+                  "  pm.expect(body.responseCode).to.eql(201);",
+                  "  pm.expect(body.message).to.eql('User created!');",
+                  "});",
+                  "",
+                  "pm.test('Resposta deve ocorrer em menos de 2000 ms', () => {",
+                  "  pm.expect(pm.response.responseTime).to.be.below(2000);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                { "key": "name", "value": "Usuario Teste HCXpert", "type": "text" },
+                { "key": "email", "value": "{{accountEmail}}", "type": "text" },
+                { "key": "password", "value": "{{accountPassword}}", "type": "text" },
+                { "key": "title", "value": "Mr", "type": "text" },
+                { "key": "birth_date", "value": "10", "type": "text" },
+                { "key": "birth_month", "value": "5", "type": "text" },
+                { "key": "birth_year", "value": "1999", "type": "text" },
+                { "key": "firstname", "value": "Usuario", "type": "text" },
+                { "key": "lastname", "value": "Teste", "type": "text" },
+                { "key": "company", "value": "Empresa Ficticia", "type": "text" },
+                { "key": "address1", "value": "Rua Ficticia, 100", "type": "text" },
+                { "key": "address2", "value": "Bairro Teste", "type": "text" },
+                { "key": "country", "value": "Canada", "type": "text" },
+                { "key": "zipcode", "value": "10001", "type": "text" },
+                { "key": "state", "value": "Ontario", "type": "text" },
+                { "key": "city", "value": "Toronto", "type": "text" },
+                { "key": "mobile_number", "value": "00000000000", "type": "text" }
+              ]
+            },
+            "url": {
+              "raw": "{{automationExerciseBaseUrl}}/api/createAccount",
+              "host": [
+                "{{automationExerciseBaseUrl}}"
+              ],
+              "path": [
+                "api",
+                "createAccount"
+              ]
+            },
+            "description": "Cria uma conta temporaria com e-mail e senha dinamicos. Nao registra os valores sensiveis no console."
+          },
+          "response": []
+        },
+        {
+          "name": "Remover conta criada (cleanup)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const body = pm.response.json();",
+                  "",
+                  "pm.test('Cleanup deve retornar HTTP 200', () => {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Conta deve ser removida', () => {",
+                  "  pm.expect(body.responseCode).to.eql(200);",
+                  "  pm.expect(body.message).to.eql('Account deleted!');",
+                  "});",
+                  "",
+                  "if (body.responseCode === 200) {",
+                  "  pm.collectionVariables.unset('accountEmail');",
+                  "  pm.collectionVariables.unset('accountPassword');",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                { "key": "email", "value": "{{accountEmail}}", "type": "text" },
+                { "key": "password", "value": "{{accountPassword}}", "type": "text" }
+              ]
+            },
+            "url": {
+              "raw": "{{automationExerciseBaseUrl}}/api/deleteAccount",
+              "host": [
+                "{{automationExerciseBaseUrl}}"
+              ],
+              "path": [
+                "api",
+                "deleteAccount"
+              ]
+            },
+            "description": "Remove a conta temporaria criada pelo request anterior para preservar isolamento e idempotencia."
           },
           "response": []
         }
