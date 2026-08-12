@@ -41,6 +41,7 @@ const readGit = (args) =>
 const npmUserAgent = process.env.npm_config_user_agent || '';
 const npmVersion = npmUserAgent.match(/npm\/([^\s]+)/)?.[1] || null;
 const cypressVersion = require('cypress/package.json').version;
+const readBoolean = (value) => value === 'true';
 
 const metadata = {
   generatedAt: finishedAt.toISOString(),
@@ -55,6 +56,20 @@ const metadata = {
     event: process.env.GITHUB_EVENT_NAME || 'local',
     runId: process.env.GITHUB_RUN_ID || null,
     runAttempt: process.env.GITHUB_RUN_ATTEMPT || null,
+    executionMode: process.env.EXECUTION_MODE || 'LOCAL',
+    fullSuiteExecuted: readBoolean(process.env.FULL_SUITE_EXECUTED),
+    fullSuitePassed: readBoolean(process.env.FULL_SUITE_PASSED),
+    requiredGatesPassed: readBoolean(process.env.REQUIRED_GATES_PASSED),
+    releaseEligible: readBoolean(process.env.RELEASE_ELIGIBLE),
+    degradedReason: process.env.DEGRADED_REASON || null,
+    outcomes: {
+      fullSuite: process.env.FULL_SUITE_OUTCOME || null,
+      fallbackSuite: process.env.FALLBACK_SUITE_OUTCOME || null,
+      k6: process.env.K6_MAIN_OUTCOME || null,
+      k6Challenge: process.env.K6_CHALLENGE_OUTCOME || null,
+      lighthouse: process.env.LIGHTHOUSE_OUTCOME || null,
+      cucumberReport: process.env.CUCUMBER_REPORT_OUTCOME || null,
+    },
   },
   environment: {
     runnerOs: process.env.RUNNER_OS || os.platform(),

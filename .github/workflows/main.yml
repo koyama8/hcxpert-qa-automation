@@ -98,26 +98,28 @@ jobs:
 
           if [[ "$api_available" == "true" && "$page_available" == "true" ]]; then
             echo "available=true" >> "$GITHUB_OUTPUT"
+            echo "mode=FULL" >> "$GITHUB_OUTPUT"
+            echo "EXECUTION_MODE=FULL" >> "$GITHUB_ENV"
             echo "Automation Exercise disponivel para a suite completa."
-            echo "### Dependencia externa: disponivel" >> "$GITHUB_STEP_SUMMARY"
-            echo "A suite Cypress e o k6 executarao todos os fluxos configurados." >> "$GITHUB_STEP_SUMMARY"
           else
             echo "available=false" >> "$GITHUB_OUTPUT"
+            echo "mode=DEGRADED" >> "$GITHUB_OUTPUT"
+            echo "EXECUTION_MODE=DEGRADED" >> "$GITHUB_ENV"
             echo "::warning title=Dependencia externa indisponivel::Automation Exercise bloqueou ou alterou a resposta para o GitHub Runner. A suite externa e o cenario k6 correspondente nao serao executados; os testes independentes permanecem obrigatorios."
-            echo "### Dependencia externa: indisponivel" >> "$GITHUB_STEP_SUMMARY"
-            echo "O Automation Exercise bloqueou ou alterou a resposta para o GitHub Runner." >> "$GITHUB_STEP_SUMMARY"
-            echo "Foram executados somente os testes independentes; os cenarios externos permanecem cobertos pela execucao local completa." >> "$GITHUB_STEP_SUMMARY"
           fi
 
       - name: Executar testes de login, busca, carrinho, checkout e API
+        id: full_suite
         if: steps.automation-exercise.outputs.available == 'true'
         run: npm run test:all
 
       - name: Executar teste independente de API
+        id: fallback_suite
         if: steps.automation-exercise.outputs.available != 'true'
         run: npm run test:ci:independent
 
       - name: Gerar relatorio Cucumber HTML
+        id: cucumber_report
         if: always()
         run: npm run report
 
@@ -126,6 +128,7 @@ jobs:
         uses: grafana/setup-k6-action@v1
 
       - name: Executar teste de performance k6
+        id: k6_main
         if: always()
         env:
           K6_PROFILE: ${{ github.event_name == 'pull_request' && 'smoke' || 'full' }}
@@ -139,6 +142,7 @@ jobs:
           k6 run --summary-export=performance/results/k6-summary.json performance/k6_api_test.js
 
       - name: Executar perfil de conformidade k6
+        id: k6_challenge
         if: always() && github.event_name == 'push' && github.ref == 'refs/heads/main'
         env:
           K6_PROFILE: challenge
@@ -157,14 +161,105 @@ jobs:
             performance/k6_api_test.js
 
       - name: Executar auditoria Lighthouse
+        id: lighthouse
         if: always()
         run: npm run test:lighthouse
+
+      - name: Classificar cobertura e elegibilidade da execucao
+        if: always()
+        shell: bash
+        env:
+          FULL_SUITE_OUTCOME: ${{ steps.full_suite.outcome }}
+          FALLBACK_SUITE_OUTCOME: ${{ steps.fallback_suite.outcome }}
+          K6_MAIN_OUTCOME: ${{ steps.k6_main.outcome }}
+          K6_CHALLENGE_OUTCOME: ${{ steps.k6_challenge.outcome }}
+          LIGHTHOUSE_OUTCOME: ${{ steps.lighthouse.outcome }}
+          CUCUMBER_REPORT_OUTCOME: ${{ steps.cucumber_report.outcome }}
+          IS_MAIN_PUSH: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+        run: |
+          full_suite_outcome="${FULL_SUITE_OUTCOME:-skipped}"
+          fallback_suite_outcome="${FALLBACK_SUITE_OUTCOME:-skipped}"
+          k6_main_outcome="${K6_MAIN_OUTCOME:-skipped}"
+          k6_challenge_outcome="${K6_CHALLENGE_OUTCOME:-skipped}"
+          lighthouse_outcome="${LIGHTHOUSE_OUTCOME:-skipped}"
+          cucumber_report_outcome="${CUCUMBER_REPORT_OUTCOME:-skipped}"
+
+          full_suite_executed=false
+          full_suite_passed=false
+          required_gates_passed=false
+          release_eligible=false
+          degraded_reason=""
+
+          if [[ "$EXECUTION_MODE" == "FULL" && "$full_suite_outcome" != "skipped" ]]; then
+            full_suite_executed=true
+          fi
+
+          if [[ "$EXECUTION_MODE" == "FULL" && "$full_suite_outcome" == "success" ]]; then
+            full_suite_passed=true
+          fi
+
+          if [[ "$EXECUTION_MODE" == "DEGRADED" ]]; then
+            degraded_reason="automation_exercise_unavailable_or_blocked"
+          fi
+
+          if [[ "$IS_MAIN_PUSH" == "true" \
+            && "$full_suite_passed" == "true" \
+            && "$k6_main_outcome" == "success" \
+            && "$k6_challenge_outcome" == "success" \
+            && "$lighthouse_outcome" == "success" \
+            && "$cucumber_report_outcome" == "success" ]]; then
+            required_gates_passed=true
+            release_eligible=true
+          fi
+
+          echo "FULL_SUITE_EXECUTED=$full_suite_executed" >> "$GITHUB_ENV"
+          echo "FULL_SUITE_PASSED=$full_suite_passed" >> "$GITHUB_ENV"
+          echo "REQUIRED_GATES_PASSED=$required_gates_passed" >> "$GITHUB_ENV"
+          echo "RELEASE_ELIGIBLE=$release_eligible" >> "$GITHUB_ENV"
+          echo "DEGRADED_REASON=$degraded_reason" >> "$GITHUB_ENV"
+          echo "FULL_SUITE_OUTCOME=$full_suite_outcome" >> "$GITHUB_ENV"
+          echo "FALLBACK_SUITE_OUTCOME=$fallback_suite_outcome" >> "$GITHUB_ENV"
+          echo "K6_MAIN_OUTCOME=$k6_main_outcome" >> "$GITHUB_ENV"
+          echo "K6_CHALLENGE_OUTCOME=$k6_challenge_outcome" >> "$GITHUB_ENV"
+          echo "LIGHTHOUSE_OUTCOME=$lighthouse_outcome" >> "$GITHUB_ENV"
+          echo "CUCUMBER_REPORT_OUTCOME=$cucumber_report_outcome" >> "$GITHUB_ENV"
+
+          mkdir -p cypress/evidencias
+          printf '{\n  "executionMode": "%s",\n  "fullSuiteExecuted": %s,\n  "fullSuitePassed": %s,\n  "requiredGatesPassed": %s,\n  "releaseEligible": %s,\n  "degradedReason": "%s"\n}\n' \
+            "$EXECUTION_MODE" \
+            "$full_suite_executed" \
+            "$full_suite_passed" \
+            "$required_gates_passed" \
+            "$release_eligible" \
+            "$degraded_reason" \
+            > cypress/evidencias/execution-mode.json
+
+          echo "### Modo de execucao: $EXECUTION_MODE" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Suite completa executada: $full_suite_executed" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Suite completa aprovada: $full_suite_passed" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Gates obrigatorios aprovados: $required_gates_passed" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Elegivel para release: $release_eligible" >> "$GITHUB_STEP_SUMMARY"
+
+          if [[ "$EXECUTION_MODE" == "DEGRADED" ]]; then
+            echo "- Motivo: Automation Exercise indisponivel ou bloqueado para o runner." >> "$GITHUB_STEP_SUMMARY"
+          fi
 
       - name: Gerar metadados da execucao
         if: always()
         env:
           CYPRESS_BROWSER: electron
         run: npm run metadata
+
+      - name: Aplicar quality gate automatico da main
+        if: always() && github.event_name == 'push' && github.ref == 'refs/heads/main'
+        shell: bash
+        run: |
+          if [[ "$RELEASE_ELIGIBLE" != "true" ]]; then
+            echo "::error title=Evidencia nao elegivel para release::Modo=$EXECUTION_MODE; suite_completa=$FULL_SUITE_PASSED; gates=$REQUIRED_GATES_PASSED"
+            exit 1
+          fi
+
+          echo "Quality gate aprovado: execucao FULL e gates obrigatorios verdes."
 
       - name: Salvar evidencias
         if: always()
@@ -215,7 +310,7 @@ jobs:
           retention-days: 30
 
       - name: Preparar relatorio para o GitHub Pages
-        if: always() && github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+        if: always() && env.RELEASE_ELIGIBLE == 'true'
         shell: bash
         run: |
           mkdir -p pages
@@ -235,18 +330,18 @@ jobs:
           fi
 
       - name: Configurar GitHub Pages
-        if: always() && github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+        if: always() && env.RELEASE_ELIGIBLE == 'true'
         uses: actions/configure-pages@v5
 
       - name: Empacotar relatorio do GitHub Pages
-        if: always() && github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+        if: always() && env.RELEASE_ELIGIBLE == 'true'
         uses: actions/upload-pages-artifact@v4
         with:
           path: pages
 
   publicar-relatorio:
     name: Publicar relatorio no GitHub Pages
-    if: always() && github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    if: needs.testes-e2e.result == 'success' && github.ref == 'refs/heads/main' && github.event_name == 'push'
     needs: testes-e2e
     runs-on: ubuntu-latest
 
