@@ -115,6 +115,24 @@ class CheckoutAssertions {
       uiMessages.checkout.pedidoConfirmado,
     );
   }
+
+  validarPedidoNaoConfirmadoPorErroRede() {
+    cy.wait(`@${networkContext.aliasErroRedeConfirmacao}`)
+      .then((interception) => {
+        expect(interception.request.method, 'metodo da confirmacao')
+          .to.equal('POST');
+        expect(interception, 'requisicao encerrada por erro de rede')
+          .to.have.property('error');
+        expect(interception.response, 'ausencia de resposta HTTP')
+          .to.be.undefined;
+      });
+
+    this.validarPermanenciaNaPaginaPagamento();
+    checkoutPage.elements.body().should(
+      'not.contain.text',
+      uiMessages.checkout.pedidoConfirmado,
+    );
+  }
 }
 
 module.exports = new CheckoutAssertions();

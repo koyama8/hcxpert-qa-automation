@@ -24,3 +24,10 @@ Feature: Checkout e validações
     When o usuário informar dados fictícios válidos para o pagamento
     And o serviço de confirmação do pedido estiver indisponível
     Then a requisição deverá falhar e o pedido não deverá ser confirmado
+
+  @network-error
+  Scenario: Impedir confirmação quando a conexão for interrompida
+    Given que o usuário está autenticado e está na página de pagamento
+    When o usuário informar dados fictícios válidos para o pagamento
+    And a conexão for interrompida durante a confirmação do pedido
+    Then a requisição deverá terminar com erro de rede e o pedido não deverá ser confirmado

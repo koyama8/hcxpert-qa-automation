@@ -69,3 +69,12 @@ Then('a requisição deverá falhar e o pedido não deverá ser confirmado',() =
     checkoutAssertions.validarPedidoNaoConfirmadoPorIndisponibilidade();
   },
 );
+
+When('a conexão for interrompida durante a confirmação do pedido', () => {
+  networkContext.simularPerdaConectividadeNaConfirmacao();
+});
+
+Then('a requisição deverá terminar com erro de rede e o pedido não deverá ser confirmado',() => {
+    checkoutAssertions.validarPedidoNaoConfirmadoPorErroRede();
+  },
+);
