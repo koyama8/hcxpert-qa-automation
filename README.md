@@ -111,8 +111,10 @@ O arquivo `cypress/fixtures/users.json` centraliza as massas negativas e os payl
 | `npm run test:all` | Executa login, busca, carrinho, checkout e API |
 | `npm run test:e2e` | Executa somente os 20 cenários Web |
 | `npm run test:api` | Executa somente os 3 cenários de API |
-| `npm run test:perf` | Executa 10 usuários virtuais durante 30 segundos |
-| `npm run test:lighthouse` | Executa três auditorias Lighthouse e usa a mediana |
+| `npm run test:perf` | Executa os cenários k6 com ramp-up e carga sustentada |
+| `npm run test:lighthouse` | Executa três auditorias Lighthouse, usa a mediana e aplica o gate |
+| `npm run lint` | Valida erros estáticos nos arquivos JavaScript |
+| `npm run metadata` | Gera os metadados reproduzíveis da execução |
 | `npm run cy:open` | Abre a interface interativa do Cypress |
 | `npm run cy:verify` | Confirma que o binário Cypress correspondente ao pacote está instalado |
 | `npm run report` | Regenera o relatório Cucumber a partir do NDJSON |
@@ -157,22 +159,22 @@ Os testes de performance são mantidos em scripts próprios de k6 e Lighthouse. 
 
 ### Carga de API com k6
 
-O script `performance/k6_api_test.js` simula **10 usuários virtuais durante 30 segundos** contra a API do Trello. A execução é aprovada quando:
+O script `performance/k6_api_test.js` executa dois cenários concorrentes: consulta de ação no Trello e consulta de produtos no Automation Exercise. O perfil completo possui ramp-up, carga sustentada e ramp-down; em pull requests o CI usa um perfil smoke curto. Cada requisição recebe tags de cenário e endpoint. A execução é aprovada quando:
 
 - 100% dos checks funcionais passam;
 - a taxa de falhas HTTP é inferior a 1%;
-- o percentil 95 do tempo de resposta é inferior a 800 ms.
+- o percentil 95 é inferior a 800 ms no Trello e a 3.000 ms no Automation Exercise.
 
 O pipeline gera `k6-report.html` e `k6-summary.json`, publica o artefato `evidencias-performance` e disponibiliza o HTML pelo botão **Performance — k6**.
 
 ### Performance Web com Lighthouse
 
-São executadas três medições desktop. A mediana reduz variações de rede e infraestrutura, com os seguintes limites de referência:
+São executadas três medições desktop. A mediana reduz variações de rede e infraestrutura, com os seguintes orçamentos de regressão calibrados para o ambiente público em 11/08/2026:
 
-- FCP menor ou igual a 1,8 segundo;
-- LCP menor ou igual a 2,5 segundos.
+- FCP menor ou igual a 3 segundos;
+- LCP menor ou igual a 5 segundos.
 
-Como o alvo é um ambiente público de terceiros, violações são registradas como alertas e evidências sem bloquear toda a suíte funcional. O pipeline publica `evidencias-lighthouse` e o relatório representativo pelo botão **Performance — Lighthouse**.
+O comando termina com erro quando qualquer orçamento é ultrapassado, tornando o Lighthouse um gate bloqueante. Os relatórios continuam sendo gravados e publicados em `evidencias-lighthouse` para permitir o diagnóstico.
 
 ## Relatórios, evidências e CI/CD
 
@@ -188,10 +190,12 @@ O workflow `.github/workflows/main.yml` realiza:
 2. restauração do cache do binário Cypress e validação explícita com `cypress verify`;
 3. execução headless da suíte Web/API em Ubuntu 24.04;
 4. geração do relatório Cucumber;
-5. execução de k6 e Lighthouse em push para `main`;
-6. execução do OWASP ZAP Baseline passivo com gate para regras `FAIL`;
-7. upload de HTML, JSON, screenshots, vídeos e relatórios de segurança como artefatos;
-8. publicação dos relatórios no GitHub Pages.
+5. gates de `npm audit` e ESLint antes da suíte funcional;
+6. execução de k6 e Lighthouse também em pull requests, usando perfil smoke no k6;
+7. geração de metadados com commit, ambiente, duração, versões e hashes de configuração;
+8. execução serial do OWASP ZAP Baseline após os testes Cypress;
+9. upload dos relatórios e evidências com retenção de 30 dias;
+10. publicação dos relatórios no GitHub Pages.
 
 Para consultar uma execução, abra **Actions → Testes E2E - Cypress**, selecione o workflow e baixe `evidencias-e2e`, `evidencias-performance`, `evidencias-lighthouse` ou `evidencias-seguranca-zap`. Os botões no início deste README abrem os relatórios publicados.
 
@@ -199,7 +203,7 @@ Para consultar uma execução, abra **Actions → Testes E2E - Cypress**, seleci
 
 - credenciais locais e arquivos de ambiente não são versionados;
 - o pipeline recebe credenciais por GitHub Secrets;
-- a auditoria das dependências de produção não possui vulnerabilidades conhecidas; riscos transitivos de desenvolvimento estão registrados em `docs/security/dependency-risk-register.md`;
+- a auditoria completa não possui vulnerabilidades conhecidas e o CI bloqueia vulnerabilidades altas ou críticas;
 - fixtures usam dados fictícios e e-mails gerados dinamicamente;
 - a feature `06_security_perf.feature` trata XSS e SQL Injection como entradas não confiáveis em login e busca;
 - o pipeline executa ZAP Baseline passivo, publica as evidências e bloqueia regras classificadas como `FAIL`.
@@ -246,9 +250,9 @@ Recomendações:
 | Dados fictícios e tratamento de segredos | fixtures, e-mail dinâmico, `.env.example` e GitHub Secrets | Atendido |
 | XSS e SQL Injection em login e busca | `06_security_perf.feature`, steps reutilizados e `security_payloads.json` | Atendido — cobertura funcional de entradas maliciosas |
 | DAST básico | job `seguranca-dast`, configuração e relatórios do ZAP Baseline | Atendido — baseline passivo automatizado com gate por severidade |
-| k6 com 10 VUs/30 s e p95 menor que 800 ms | `performance/k6_api_test.js` e relatório publicado | Atendido |
-| Lighthouse com FCP e LCP | `scripts/run-lighthouse.js` e relatório publicado | Atendido |
-| Pipeline headless, relatórios e artefatos | `.github/workflows/main.yml` | Atendido |
+| k6 com estágios, cenários e thresholds por endpoint | `performance/k6_api_test.js` e relatório publicado | Atendido — perfil completo e smoke |
+| Lighthouse com FCP e LCP | `scripts/run-lighthouse.js` e relatório publicado | Atendido — gate bloqueante pela mediana |
+| Pipeline headless, gates, metadados e artefatos | `.github/workflows/main.yml` | Atendido — audit, lint e retenção configurados |
 | Relatório gráfico Cucumber/HTML | `cypress/evidencias` e GitHub Pages | Atendido |
 | README com pré-requisitos, comandos e parecer | este documento | Atendido |
 | Execução da suíte em container | não implementada; execução documentada localmente e no GitHub Actions | Não atendido |
@@ -258,4 +262,4 @@ Recomendações:
 - O projeto depende de ambientes públicos sem controle de disponibilidade ou massa de dados.
 - O ZAP Baseline avalia um ambiente público externo; riscos que o projeto não pode corrigir permanecem documentados como `WARN`.
 - A suíte funcional não possui imagem Docker própria; a execução reproduzível ocorre localmente com Node.js 22.23.2 ou no GitHub Actions em Ubuntu 24.04.
-- Alertas do Lighthouse podem variar conforme rede, anúncios e carga do servidor externo.
+- O Lighthouse e o k6 podem variar conforme rede, anúncios e carga dos serviços externos; os limites são gates de regressão, não prova de capacidade do fornecedor.

@@ -15,7 +15,7 @@ permissions:
 jobs:
   testes-e2e:
     runs-on: ubuntu-24.04
-    timeout-minutes: 15
+    timeout-minutes: 20
 
     env:
       CYPRESS_email: ${{ secrets.TEST_USER_EMAIL }}
@@ -25,6 +25,10 @@ jobs:
       - name: Baixar o projeto
         uses: actions/checkout@v4
 
+      - name: Registrar inicio da execucao
+        shell: bash
+        run: echo "EXECUTION_STARTED_AT=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> "$GITHUB_ENV"
+
       - name: Configurar Node.js
         uses: actions/setup-node@v4
         with:
@@ -32,16 +36,25 @@ jobs:
           cache: npm
           cache-dependency-path: package-lock.json
 
-      - name: Restaurar cache do binário Cypress
+      - name: Restaurar cache do binario Cypress
         uses: actions/cache@v4
         with:
           path: ~/.cache/Cypress
           key: cypress-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
 
-      - name: Instalar dependências
+      - name: Instalar dependencias
         run: npm ci
 
-      - name: Registrar ambiente de execução
+      - name: Auditar dependencias
+        shell: bash
+        run: |
+          mkdir -p security/reports
+          npm audit --json --audit-level=high > security/reports/npm-audit.json
+
+      - name: Validar qualidade estatica
+        run: npm run lint
+
+      - name: Registrar ambiente de execucao
         run: |
           node --version
           npm --version
@@ -49,23 +62,24 @@ jobs:
           npx cypress cache path
           npx cypress cache list
 
-      - name: Verificar binário Cypress
+      - name: Verificar binario Cypress
         run: npm run cy:verify
 
       - name: Executar testes de login, busca, carrinho, checkout e API
         run: npm run test:all
 
-      - name: Gerar relatório Cucumber HTML
+      - name: Gerar relatorio Cucumber HTML
         if: always()
         run: npm run report
 
       - name: Configurar k6
-        if: always() && github.event_name != 'pull_request'
+        if: always()
         uses: grafana/setup-k6-action@v1
 
       - name: Executar teste de performance k6
-        if: always() && github.event_name != 'pull_request'
+        if: always()
         env:
+          K6_PROFILE: ${{ github.event_name == 'pull_request' && 'smoke' || 'full' }}
           K6_WEB_DASHBOARD: "true"
           K6_WEB_DASHBOARD_PORT: "-1"
           K6_WEB_DASHBOARD_PERIOD: "1s"
@@ -75,10 +89,16 @@ jobs:
           k6 run --summary-export=performance/results/k6-summary.json performance/k6_api_test.js
 
       - name: Executar auditoria Lighthouse
-        if: always() && github.event_name != 'pull_request'
+        if: always()
         run: npm run test:lighthouse
 
-      - name: Salvar evidências
+      - name: Gerar metadados da execucao
+        if: always()
+        env:
+          CYPRESS_BROWSER: electron
+        run: npm run metadata
+
+      - name: Salvar evidencias
         if: always()
         uses: actions/upload-artifact@v4
         with:
@@ -88,24 +108,36 @@ jobs:
             cypress/screenshots
             cypress/videos
           if-no-files-found: ignore
+          retention-days: 30
 
-      - name: Salvar evidências de performance
-        if: always() && github.event_name != 'pull_request'
+      - name: Salvar auditoria de dependencias
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: evidencias-dependencias
+          path: security/reports/npm-audit.json
+          if-no-files-found: warn
+          retention-days: 30
+
+      - name: Salvar evidencias de performance
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: evidencias-performance
           path: performance/results
           if-no-files-found: warn
+          retention-days: 30
 
-      - name: Salvar evidências Lighthouse
-        if: always() && github.event_name != 'pull_request'
+      - name: Salvar evidencias Lighthouse
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: evidencias-lighthouse
           path: performance/lighthouse
           if-no-files-found: warn
+          retention-days: 30
 
-      - name: Preparar relatório para o GitHub Pages
+      - name: Preparar relatorio para o GitHub Pages
         if: always() && github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
         shell: bash
         run: |
@@ -129,14 +161,14 @@ jobs:
         if: always() && github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
         uses: actions/configure-pages@v5
 
-      - name: Empacotar relatório do GitHub Pages
+      - name: Empacotar relatorio do GitHub Pages
         if: always() && github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
         uses: actions/upload-pages-artifact@v4
         with:
           path: pages
 
   publicar-relatorio:
-    name: Publicar relatório no GitHub Pages
+    name: Publicar relatorio no GitHub Pages
     if: always() && github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
     needs: testes-e2e
     runs-on: ubuntu-latest

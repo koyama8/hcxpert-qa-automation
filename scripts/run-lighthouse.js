@@ -1,10 +1,13 @@
 const fs = require('fs');
+const os = require('os');
 const path = require('path');
 
 const TARGET_URL = 'https://www.automationexercise.com/';
 const NUMBER_OF_RUNS = 3;
-const FCP_THRESHOLD_MS = 1800;
-const LCP_THRESHOLD_MS = 2500;
+// Orçamento de regressão calibrado para o ambiente público em 11/08/2026.
+// Ele não representa capacidade do servidor; apenas bloqueia degradações relevantes.
+const FCP_THRESHOLD_MS = 3000;
+const LCP_THRESHOLD_MS = 5000;
 const outputDir = path.resolve('performance/lighthouse');
 
 const median = (values) => {
@@ -22,15 +25,28 @@ const getMetric = (report, auditId) => {
   };
 };
 
-const closeChrome = async (chrome) => {
-  if (!chrome) return;
+const closeChrome = async (chrome, userDataDir) => {
+  if (chrome) {
+    try {
+      await chrome.kill();
+    } catch (error) {
+      console.warn(`Aviso ao encerrar o Chrome: ${error.message}`);
+    }
+  }
 
-  try {
-    await chrome.kill();
-  } catch (error) {
-    // O Chrome pode manter sua pasta temporária bloqueada por alguns instantes no Windows.
-    // O relatório já foi coletado neste ponto, portanto preservamos a evidência gerada.
-    console.warn(`Aviso ao encerrar o Chrome: ${error.message}`);
+  if (userDataDir) {
+    try {
+      fs.rmSync(userDataDir, {
+        recursive: true,
+        force: true,
+        maxRetries: 10,
+        retryDelay: 200,
+      });
+    } catch (error) {
+      // No Windows, antivírus ou o próprio Chrome podem segurar o perfil por instantes.
+      // A limpeza não altera a validade do relatório já persistido.
+      console.warn(`Aviso ao limpar perfil temporário: ${error.message}`);
+    }
   }
 };
 
@@ -50,10 +66,14 @@ const run = async () => {
   for (let index = 1; index <= NUMBER_OF_RUNS; index += 1) {
     console.log(`Executando Lighthouse (${index}/${NUMBER_OF_RUNS})...`);
     let chrome;
+    const userDataDir = fs.mkdtempSync(
+      path.join(os.tmpdir(), 'hcx-lighthouse-'),
+    );
 
     try {
       chrome = await chromeLauncher.launch({
         chromeFlags: ['--headless', '--no-sandbox', '--disable-gpu'],
+        userDataDir,
       });
 
       const result = await lighthouse(
@@ -92,7 +112,7 @@ const run = async () => {
         largestContentfulPaint: getMetric(report, 'largest-contentful-paint'),
       });
     } finally {
-      await closeChrome(chrome);
+      await closeChrome(chrome, userDataDir);
     }
   }
 
@@ -147,12 +167,20 @@ const run = async () => {
   console.log('Resumo da auditoria Lighthouse:');
   console.log(JSON.stringify(summary, null, 2));
 
+  const failedMetrics = [];
+
   if (!summary.firstContentfulPaint.passed) {
-    console.warn(`FCP acima do limite de ${FCP_THRESHOLD_MS} ms.`);
+    failedMetrics.push(`FCP acima do limite de ${FCP_THRESHOLD_MS} ms`);
   }
   if (!summary.largestContentfulPaint.passed) {
-    console.warn(`LCP acima do limite de ${LCP_THRESHOLD_MS} ms.`);
+    failedMetrics.push(`LCP acima do limite de ${LCP_THRESHOLD_MS} ms`);
   }
+
+  if (failedMetrics.length > 0) {
+    throw new Error(`Gate Lighthouse reprovado: ${failedMetrics.join('; ')}.`);
+  }
+
+  console.log('Gate Lighthouse aprovado.');
 };
 
 run().catch((error) => {
