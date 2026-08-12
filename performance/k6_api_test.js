@@ -5,7 +5,7 @@ const TRELLO_ACTION_URL =
   'https://api.trello.com/1/actions/592f11060f95a3d3d46a987a';
 const AUTOMATION_EXERCISE_PRODUCTS_URL =
   'https://www.automationexercise.com/api/productsList';
-const isSmokeProfile = __ENV.K6_PROFILE === 'smoke';
+const profile = __ENV.K6_PROFILE || 'full';
 const isAutomationExerciseAvailable =
   __ENV.K6_AUTOMATION_EXERCISE_AVAILABLE !== 'false';
 
@@ -57,17 +57,42 @@ const fullScenarios = {
   },
 };
 
-const selectedScenarios = isSmokeProfile ? smokeScenarios : fullScenarios;
+const challengeScenarios = {
+  trello_action: {
+    executor: 'constant-vus',
+    exec: 'consultarAcaoTrello',
+    vus: 10,
+    duration: '30s',
+    tags: { endpoint: 'trello_action', profile: 'challenge' },
+  },
+};
+
+const scenariosByProfile = {
+  smoke: smokeScenarios,
+  full: fullScenarios,
+  challenge: challengeScenarios,
+};
+
+const selectedScenarios = scenariosByProfile[profile];
+
+if (!selectedScenarios) {
+  throw new Error(
+    `Perfil k6 invalido: ${profile}. Use smoke, full ou challenge.`,
+  );
+}
+
+const shouldTestAutomationExercise =
+  isAutomationExerciseAvailable && profile !== 'challenge';
 
 export const options = {
-  scenarios: isAutomationExerciseAvailable
+  scenarios: shouldTestAutomationExercise
     ? selectedScenarios
     : { trello_action: selectedScenarios.trello_action },
   thresholds: {
     'http_req_duration{endpoint:trello_action}': ['p(95)<800'],
     'http_req_failed{endpoint:trello_action}': ['rate<0.01'],
     'checks{endpoint:trello_action}': ['rate==1'],
-    ...(isAutomationExerciseAvailable
+    ...(shouldTestAutomationExercise
       ? {
           'http_req_duration{endpoint:automation_exercise_products}': [
             'p(95)<3000',

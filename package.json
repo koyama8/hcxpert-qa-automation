@@ -12,6 +12,7 @@
     "test:ci:independent": "cypress run --browser electron --spec \"cypress/e2e/features/05_api_trello.feature\" --env tags=\"@ci-independent\"",
     "test:security": "cypress run --browser electron --spec \"cypress/e2e/features/06_security_perf.feature\"",
     "test:perf": "k6 run performance/k6_api_test.js",
+    "test:perf:challenge": "k6 run -e K6_PROFILE=challenge performance/k6_api_test.js",
     "test:lighthouse": "node scripts/run-lighthouse.js",
     "report": "node scripts/generate-report.js",
     "lint": "eslint .",

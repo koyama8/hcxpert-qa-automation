@@ -138,6 +138,24 @@ jobs:
           mkdir -p performance/results
           k6 run --summary-export=performance/results/k6-summary.json performance/k6_api_test.js
 
+      - name: Executar perfil de conformidade k6
+        if: always() && github.event_name == 'push' && github.ref == 'refs/heads/main'
+        env:
+          K6_PROFILE: challenge
+          K6_WEB_DASHBOARD: "true"
+          K6_WEB_DASHBOARD_PORT: "-1"
+          K6_WEB_DASHBOARD_PERIOD: "1s"
+          K6_WEB_DASHBOARD_EXPORT: performance/results/challenge/k6-report.html
+        shell: bash
+        run: |
+          mkdir -p performance/results/challenge
+          printf '%s\n' \
+            '{"profile":"challenge","executor":"constant-vus","vus":10,"duration":"30s","endpoint":"trello_action","p95_limit_ms":800}' \
+            > performance/results/challenge/execution-profile.json
+          k6 run \
+            --summary-export=performance/results/challenge/k6-summary.json \
+            performance/k6_api_test.js
+
       - name: Executar auditoria Lighthouse
         if: always()
         run: npm run test:lighthouse
@@ -176,6 +194,15 @@ jobs:
           name: evidencias-performance
           path: performance/results
           if-no-files-found: warn
+          retention-days: 30
+
+      - name: Salvar evidencias do perfil de conformidade k6
+        if: always() && github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: actions/upload-artifact@v4
+        with:
+          name: evidencias-performance-challenge
+          path: performance/results/challenge
+          if-no-files-found: error
           retention-days: 30
 
       - name: Salvar evidencias Lighthouse
