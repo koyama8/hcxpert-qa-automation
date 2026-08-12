@@ -6,6 +6,7 @@ Feature: Validação de APIs
   Quero validar integrações por API
   Para garantir contratos, regras de negócio e desempenho
 
+  @ci-independent
   Scenario: Consultar uma ação existente
     Given que o endpoint de ações do Trello está configurado
     When o usuário consultar a ação "592f11060f95a3d3d46a987a"

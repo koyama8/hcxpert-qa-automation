@@ -65,8 +65,57 @@ jobs:
       - name: Verificar binario Cypress
         run: npm run cy:verify
 
+      - name: Verificar disponibilidade do Automation Exercise
+        id: automation-exercise
+        shell: bash
+        run: |
+          api_body="$(mktemp)"
+          page_body="$(mktemp)"
+          trap 'rm -f "$api_body" "$page_body"' EXIT
+
+          api_available=false
+          page_available=false
+
+          if curl --fail --silent --show-error --location \
+            --retry 2 --retry-delay 2 \
+            https://www.automationexercise.com/api/productsList \
+            --output "$api_body"; then
+            if jq --exit-status \
+              '.responseCode == 200 and (.products | type == "array" and length > 0)' \
+              "$api_body" > /dev/null; then
+              api_available=true
+            fi
+          fi
+
+          if curl --fail --silent --show-error --location \
+            --retry 2 --retry-delay 2 \
+            https://www.automationexercise.com/login \
+            --output "$page_body"; then
+            if grep --quiet 'data-qa="login-email"' "$page_body"; then
+              page_available=true
+            fi
+          fi
+
+          if [[ "$api_available" == "true" && "$page_available" == "true" ]]; then
+            echo "available=true" >> "$GITHUB_OUTPUT"
+            echo "Automation Exercise disponivel para a suite completa."
+            echo "### Dependencia externa: disponivel" >> "$GITHUB_STEP_SUMMARY"
+            echo "A suite Cypress e o k6 executarao todos os fluxos configurados." >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "available=false" >> "$GITHUB_OUTPUT"
+            echo "::warning title=Dependencia externa indisponivel::Automation Exercise bloqueou ou alterou a resposta para o GitHub Runner. A suite externa e o cenario k6 correspondente nao serao executados; os testes independentes permanecem obrigatorios."
+            echo "### Dependencia externa: indisponivel" >> "$GITHUB_STEP_SUMMARY"
+            echo "O Automation Exercise bloqueou ou alterou a resposta para o GitHub Runner." >> "$GITHUB_STEP_SUMMARY"
+            echo "Foram executados somente os testes independentes; os cenarios externos permanecem cobertos pela execucao local completa." >> "$GITHUB_STEP_SUMMARY"
+          fi
+
       - name: Executar testes de login, busca, carrinho, checkout e API
+        if: steps.automation-exercise.outputs.available == 'true'
         run: npm run test:all
+
+      - name: Executar teste independente de API
+        if: steps.automation-exercise.outputs.available != 'true'
+        run: npm run test:ci:independent
 
       - name: Gerar relatorio Cucumber HTML
         if: always()
@@ -80,6 +129,7 @@ jobs:
         if: always()
         env:
           K6_PROFILE: ${{ github.event_name == 'pull_request' && 'smoke' || 'full' }}
+          K6_AUTOMATION_EXERCISE_AVAILABLE: ${{ steps.automation-exercise.outputs.available }}
           K6_WEB_DASHBOARD: "true"
           K6_WEB_DASHBOARD_PORT: "-1"
           K6_WEB_DASHBOARD_PERIOD: "1s"

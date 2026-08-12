@@ -6,6 +6,8 @@ const TRELLO_ACTION_URL =
 const AUTOMATION_EXERCISE_PRODUCTS_URL =
   'https://www.automationexercise.com/api/productsList';
 const isSmokeProfile = __ENV.K6_PROFILE === 'smoke';
+const isAutomationExerciseAvailable =
+  __ENV.K6_AUTOMATION_EXERCISE_AVAILABLE !== 'false';
 
 const smokeScenarios = {
   trello_action: {
@@ -55,15 +57,27 @@ const fullScenarios = {
   },
 };
 
+const selectedScenarios = isSmokeProfile ? smokeScenarios : fullScenarios;
+
 export const options = {
-  scenarios: isSmokeProfile ? smokeScenarios : fullScenarios,
+  scenarios: isAutomationExerciseAvailable
+    ? selectedScenarios
+    : { trello_action: selectedScenarios.trello_action },
   thresholds: {
     'http_req_duration{endpoint:trello_action}': ['p(95)<800'],
     'http_req_failed{endpoint:trello_action}': ['rate<0.01'],
     'checks{endpoint:trello_action}': ['rate==1'],
-    'http_req_duration{endpoint:automation_exercise_products}': ['p(95)<3000'],
-    'http_req_failed{endpoint:automation_exercise_products}': ['rate<0.01'],
-    'checks{endpoint:automation_exercise_products}': ['rate==1'],
+    ...(isAutomationExerciseAvailable
+      ? {
+          'http_req_duration{endpoint:automation_exercise_products}': [
+            'p(95)<3000',
+          ],
+          'http_req_failed{endpoint:automation_exercise_products}': [
+            'rate<0.01',
+          ],
+          'checks{endpoint:automation_exercise_products}': ['rate==1'],
+        }
+      : {}),
   },
 };
 
